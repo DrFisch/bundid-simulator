@@ -1,0 +1,2 @@
+# Fork bpsim/standardkonform: Shell-Skripte laufen im Linux-Container und brauchen LF-Zeilenenden.
+*.sh text eol=lf
