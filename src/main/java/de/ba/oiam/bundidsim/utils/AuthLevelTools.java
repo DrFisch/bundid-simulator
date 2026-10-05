@@ -25,6 +25,9 @@ import java.util.List;
 
 /**
  * Utils für den Umgang mit Vertrauensniveaus
+ *
+ * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Normalisierung des angeforderten Niveaus und
+ * Ausgabe als absolute eIDAS-LoA-URI ergänzt.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
@@ -96,6 +99,48 @@ public class AuthLevelTools {
             case LOA_HIGH -> STORK_4;
             case LOA_SUBSTANTIAL -> STORK_3;
             default -> STORK_1;
+        };
+    }
+
+    // Fork bpsim/standardkonform (siehe FORK.md) ************************************************************
+
+    public static final String LOA_FORMAT_STORK = "stork";   // Original: "STORK-QAA-Level-n" (keine absolute URI)
+    public static final String LOA_FORMAT_EIDAS = "eidas";   // absolute eIDAS-LoA-URIs (SAML-Core 1.3.2)
+
+    public static final String EIDAS_LOA_LOW = "http://eidas.europa.eu/LoA/low";
+    public static final String EIDAS_LOA_SUBSTANTIAL = "http://eidas.europa.eu/LoA/substantial";
+    public static final String EIDAS_LOA_HIGH = "http://eidas.europa.eu/LoA/high";
+
+    /**
+     * normalisiert das angeforderte Niveau aus dem AuthnRequest: getrimmt; eIDAS-LoA-URIs werden auf die
+     * STORK-Bezeichner abgebildet. Andere Werte bleiben unverändert (Originalverhalten).
+     */
+    public static String normalizeRequestedLevel(String level) {
+        if (!StringUtils.hasText(level)) {
+            return level;
+        }
+        String trimmed = level.trim();
+        return switch (trimmed) {
+            case EIDAS_LOA_HIGH -> STORK_4;
+            case EIDAS_LOA_SUBSTANTIAL -> STORK_3;
+            case EIDAS_LOA_LOW -> STORK_1;
+            default -> trimmed;
+        };
+    }
+
+    /**
+     * liefert den Wert für das AuthnContextClassRef der Response im gewünschten Format.
+     * Format "eidas": STORK-QAA-Level-4 → high, -3 → substantial, -1 → low (Konvention dieses Forks: die
+     * BundID-Stufe "normal/Basis" hat keine exakte eIDAS-Entsprechung).
+     */
+    public static String toAuthnContextClassRef(String storkLevel, String format) {
+        if (!LOA_FORMAT_EIDAS.equalsIgnoreCase(format) || !StringUtils.hasText(storkLevel)) {
+            return storkLevel;
+        }
+        return switch (storkLevel) {
+            case STORK_4 -> EIDAS_LOA_HIGH;
+            case STORK_3 -> EIDAS_LOA_SUBSTANTIAL;
+            default -> EIDAS_LOA_LOW;
         };
     }
 

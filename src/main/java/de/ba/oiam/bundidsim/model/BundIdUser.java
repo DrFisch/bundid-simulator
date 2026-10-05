@@ -44,6 +44,7 @@ public class BundIdUser {
     private String placeOfBirth;    // Geburtsort (optional)
     private String birthName;       // Geburtsname
     private String bpk2;                // Personenschlüssel
+    private String postkorbHandle;      // Fork bpsim/standardkonform: Postkorb-Handle (UUID, optional)
 
     // technische Nutzdaten BundID-Response
     private String eidasIssuingCountry; // Eidas-Land

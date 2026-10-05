@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -38,6 +39,8 @@ import java.util.List;
 
 /**
  * Webcontroller für den Einstiegspunkt "/saml" via POST und GET (nur Test)
+ *
+ * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Request-Analyse namespace-bewusst.
  */
 @Controller
 @Slf4j
@@ -153,14 +156,19 @@ public class SamlController {
      * @throws Exception
      */
     private SamlRequestValues analyseSamlRequest(String samlRequest, String state) throws Exception {
-        String decodedSamlRequest = new String(Base64.getDecoder().decode(samlRequest));
-        Document doc = XmlParserTools.parseXML(decodedSamlRequest);
+        String decodedSamlRequest = new String(Base64.getDecoder().decode(samlRequest), StandardCharsets.UTF_8);
+        // Fork: namespace-bewusst statt über feste Präfixe "saml:"/"samlp:" (vorher wurden z. B. bei
+        // "saml2:Issuer" Issuer und Audience leer); Werte getrimmt; eIDAS-LoA-URIs werden verstanden.
+        Document doc = XmlParserTools.parseXmlNamespaceAware(decodedSamlRequest);
+        Element root = doc.getDocumentElement();
 
-        String serviceUrl = doc.getDocumentElement().getAttribute("AssertionConsumerServiceURL");
-        String id = doc.getDocumentElement().getAttribute("ID");
-        String valueIssuer = XmlParserTools.findValueByTagname(doc, "saml:Issuer");
-        String valueReqAutnLevel =
-                XmlParserTools.findValueByTagname(doc, "samlp:RequestedAuthnContext");
+        String serviceUrl = root.getAttribute("AssertionConsumerServiceURL");
+        String id = root.getAttribute("ID");
+        String valueIssuer = XmlParserTools.findChildText(root, XmlParserTools.NS_SAML_ASSERTION, "Issuer");
+        Element requestedAuthnContext =
+                XmlParserTools.findChild(root, XmlParserTools.NS_SAML_PROTOCOL, "RequestedAuthnContext");
+        String valueReqAutnLevel = AuthLevelTools.normalizeRequestedLevel(XmlParserTools.findChildText(
+                requestedAuthnContext, XmlParserTools.NS_SAML_ASSERTION, "AuthnContextClassRef"));
 
         SamlRequestValues samlRequestModel =
                 SamlRequestValues.builder()

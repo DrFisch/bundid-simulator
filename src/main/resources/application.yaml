@@ -50,6 +50,20 @@ app:
     title: "BundID-Simulator"
   resources:
     userdefinition: "classpath:users.yml"
+  # Fork bpsim/standardkonform (siehe FORK.md). Alle Voreinstellungen = Originalverhalten.
+  # Per Umgebungsvariable setzbar (Punkte → "_", Bindestriche entfallen), z. B. APP_SAML_IDPENTITYID,
+  # APP_SAML_SSOURL, APP_SAML_LOAFORMAT, APP_SAML_POSTKORBHANDLE_ENABLED, APP_SAML_SIGNING_ENABLED.
+  saml:
+    idp-entity-id: ""          # z. B. "https://bundid.example.de/saml/metadata"; leer = Issuer ist die SP-EntityID
+    sso-url: ""                # öffentliche URL von POST /saml (für die Metadaten)
+    loa-format: "stork"        # "stork" = STORK-QAA-Level-n, "eidas" = http://eidas.europa.eu/LoA/...
+    postkorb-handle:
+      enabled: false           # true = Attribut PostkorbHandle (urn:oid:2.5.4.18) liefern
+    signing:
+      enabled: false           # true = Assertion signieren (RSA-SHA256)
+      keystore: ""             # PKCS12-Datei mit Schlüssel und Zertifikat
+      password: ""
+      alias: "idp-signing"
 
 management:
   endpoints:

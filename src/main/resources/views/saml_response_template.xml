@@ -1,4 +1,6 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Conditions direkt nach Subject (Schema-Reihenfolge)
+     mit NotBefore/NotOnOrAfter, xsi:type mit deklariertem Präfix "xs", AuthnContextClassRef konfigurierbar. -->
 <samlp:Response
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -19,10 +21,15 @@
                 <saml:SubjectConfirmationData NotOnOrAfter="[(${params.subjectConfirmationNotOnOrAfter})]" Recipient="[(${params.subjectConfirmationRecipient})]" InResponseTo="[(${params.requestId})]"/>
             </saml:SubjectConfirmation>
         </saml:Subject>
+        <saml:Conditions NotBefore="[(${params.conditionsNotBefore})]" NotOnOrAfter="[(${params.subjectConfirmationNotOnOrAfter})]">
+            <saml:AudienceRestriction>
+                <saml:Audience>[(${params.spEntityId})]</saml:Audience>
+            </saml:AudienceRestriction>
+        </saml:Conditions>
 
         <saml:AuthnStatement AuthnInstant="[(${params.authnInstant})]" SessionIndex="[(${params.sessionIndex})]">
             <saml:AuthnContext>
-                <saml:AuthnContextClassRef>[(${params.userAuthnLevel})]</saml:AuthnContextClassRef>
+                <saml:AuthnContextClassRef>[(${params.authnContextClassRef})]</saml:AuthnContextClassRef>
             </saml:AuthnContext>
         </saml:AuthnStatement>
 
@@ -30,16 +37,11 @@
 
             [# th:each="attribute: ${attributes}"]
             <saml:Attribute xmlns:akdb="https://www.akdb.de/request/2018/09" FriendlyName="[(${attribute.friendlyName})]" Name="[(${attribute.name})]" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" akdb:TrustLevel="[(${attribute.trustLevel})]">
-                <saml:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">[(${attribute.value})]</saml:AttributeValue>
+                <saml:AttributeValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">[(${attribute.value})]</saml:AttributeValue>
             </saml:Attribute>
             [/]
 
         </saml:AttributeStatement>
-        <saml:Conditions>
-            <saml:AudienceRestriction>
-                <saml:Audience>[(${params.spEntityId})]</saml:Audience>
-            </saml:AudienceRestriction>
-        </saml:Conditions>
         <saml:AuthnStatement AuthnInstant="[(${params.authnInstant})]" SessionNotOnOrAfter="[(${params.sessionNotOnOrAfter})]"
                              SessionIndex="[(${params.sessionIndex})]">
             <saml:AuthnContext>

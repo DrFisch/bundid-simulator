@@ -40,4 +40,7 @@ public class SamlResponseValues {
     private String subjectConfirmationRecipient;
     private String userAuthnLevel;
     private String user;
+    // Fork bpsim/standardkonform (siehe FORK.md)
+    private String authnContextClassRef;     // Wert für AuthnContextClassRef (STORK oder eIDAS-URI)
+    private String conditionsNotBefore;      // Conditions/@NotBefore
 }
