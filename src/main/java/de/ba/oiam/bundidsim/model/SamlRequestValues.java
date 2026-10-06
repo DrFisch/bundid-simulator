@@ -29,5 +29,6 @@ public class SamlRequestValues {
     private String ascUrl;          // Assertion Consumer Service Url
     private String reqAuthnLevel;   // gefordertes Mindest-Vertrauensniveau
     private String relayState;
+    private boolean forceAuthn;     // Fork: AuthnRequest/@ForceAuthn – Anmeldesitzung (SSO) nicht verwenden
 
 }

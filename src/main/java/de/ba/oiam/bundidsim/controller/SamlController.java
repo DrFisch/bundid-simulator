@@ -17,11 +17,15 @@ package de.ba.oiam.bundidsim.controller;
 
 import de.ba.oiam.bundidsim.model.BundIdUser;
 import de.ba.oiam.bundidsim.model.SamlRequestValues;
+import de.ba.oiam.bundidsim.model.Status;
 import de.ba.oiam.bundidsim.model.view.SelectFormData;
+import de.ba.oiam.bundidsim.services.AuthResponseService;
+import de.ba.oiam.bundidsim.services.SsoSessionService;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
 import de.ba.oiam.bundidsim.utils.XmlParserTools;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,12 +39,15 @@ import org.w3c.dom.Element;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Webcontroller für den Einstiegspunkt "/saml" via POST und GET (nur Test)
  *
- * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Request-Analyse namespace-bewusst.
+ * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Request-Analyse namespace-bewusst; Anmeldesitzung
+ * (SSO): Mit bestehender Sitzung und ausreichendem Niveau antwortet der Simulator ohne Personenauswahl.
  */
 @Controller
 @Slf4j
@@ -48,6 +55,12 @@ public class SamlController {
 
     @Autowired
     private UserDefinitionService userService;
+
+    @Autowired
+    private SsoSessionService ssoSessionService;
+
+    @Autowired
+    private AuthResponseService authResponseService;
 
     /**
      * GET /saml Einstiegspunkt für den Test.
@@ -60,12 +73,12 @@ public class SamlController {
      * @throws Exception
      */
     @GetMapping(path = "/saml")
-    public String samlRequestReceiverGet(Model model) throws Exception {
+    public String samlRequestReceiverGet(Model model, HttpServletRequest request) throws Exception {
 
         String paramSamlRequest = createSkeletonSamlRequestBase64Encoded();
         String paramRelayState =
                 "lwN0_rRBl5jHaEJt4a0V6IRFOkaR3Krw4K9HQ-73NSM.1gou_vqz1yw.api-client-public";
-        return samlRequestReceiver(model, paramSamlRequest, paramRelayState);
+        return samlRequestReceiver(model, request, paramSamlRequest, paramRelayState);
     }
 
     /**
@@ -76,7 +89,7 @@ public class SamlController {
      * @param state       Relaystate
      */
     @PostMapping(path = "/saml")
-    public String samlRequestReceiver(Model model,
+    public String samlRequestReceiver(Model model, HttpServletRequest request,
                                       @RequestParam(value = "SAMLRequest", required = false) String samlRequest,
                                       @RequestParam(value = "RelayState", required = false) String state)
             throws Exception {
@@ -92,20 +105,40 @@ public class SamlController {
             samlRequestModel.setReqAuthnLevel(AuthLevelTools.STORK_1);
         }
 
+        // Fork: Anmeldesitzung (SSO). Reicht das Niveau der Sitzung und verlangt der Dienst keine neue Anmeldung
+        // (ForceAuthn), antwortet der Simulator sofort – wie die echte BundID für einen weiteren Dienst.
+        String encodedRequest = ObjectStringConverter.serializeAndEncode(samlRequestModel);
+        Optional<SsoSessionService.SsoState> sso = ssoSessionService.find(request);
+        if (sso.isPresent() && !samlRequestModel.isForceAuthn()
+                && AuthLevelTools.rank(sso.get().level()) >= AuthLevelTools.rank(samlRequestModel.getReqAuthnLevel())) {
+            BundIdUser user = ssoSessionService.user(sso.get());
+            log.debug("SSO: Antwort ohne Personenauswahl für [{}]", samlRequestModel.getIssuer());
+            return authResponseService.prepareSamlResponse(model, encodedRequest, Status.buildOkStatus(), user,
+                    user.getEidCitizenQaaLevel());
+        }
+
         List<BundIdUser> userList = userService.getUserList();
+        String[][] identWithList = AuthLevelTools.createIdentificationWithList(samlRequestModel.getReqAuthnLevel());
         SelectFormData formData =
                 SelectFormData.builder()
                         .status(SelectFormData.STATUS_OK)
                         .userId(userList.getFirst().getId()) // Erster User-Eintrag aktiv
                         .identifikationWith(AuthLevelTools.IDENTIFICATION_EID)
-                        .samlRequest(ObjectStringConverter.serializeAndEncode(samlRequestModel))
+                        .samlRequest(encodedRequest)
                         .build();
+        // Fork: mit bestehender Sitzung (neue Anmeldung verlangt oder Step-up) Person und Kontext vorbelegen
+        sso.ifPresent(s -> {
+            formData.setUserId(s.userId());
+            formData.setDomainContext(s.domainContext());
+            if (Arrays.stream(identWithList).anyMatch(item -> item[0].equals(s.identification()))) {
+                formData.setIdentifikationWith(s.identification());
+            }
+            model.addAttribute("ssoInfo", s.displayName() + " (" + s.identification() + ", " + s.level() + ")");
+        });
 
         model.addAttribute("formdata", formData);
         model.addAttribute("userlist", userList);
-        model.addAttribute(
-                "identWithList",
-                AuthLevelTools.createIdentificationWithList(samlRequestModel.getReqAuthnLevel()));
+        model.addAttribute("identWithList", identWithList);
         log.debug("Model: [{}]", formData.toString());
 
         return "select_view";
@@ -163,6 +196,7 @@ public class SamlController {
         Element root = doc.getDocumentElement();
 
         String serviceUrl = root.getAttribute("AssertionConsumerServiceURL");
+        String forceAuthn = root.getAttribute("ForceAuthn").trim();
         String id = root.getAttribute("ID");
         String valueIssuer = XmlParserTools.findChildText(root, XmlParserTools.NS_SAML_ASSERTION, "Issuer");
         Element requestedAuthnContext =
@@ -177,6 +211,7 @@ public class SamlController {
                         .reqAuthnLevel(valueReqAutnLevel)
                         .ascUrl(serviceUrl)
                         .relayState(state)
+                        .forceAuthn("true".equals(forceAuthn) || "1".equals(forceAuthn))
                         .build();
         log.debug("model samrequest: [{}]", samlRequestModel);
         return samlRequestModel;

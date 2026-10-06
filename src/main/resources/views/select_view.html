@@ -10,6 +10,12 @@
             <div class="row">
                 <h1>Personen</h1>
             </div>
+            <!-- Fork bpsim/standardkonform: Hinweis auf eine bestehende Anmeldesitzung (SSO) -->
+            <div class="alert alert-info" data-th-if="${ssoInfo}">
+                Bestehende Anmeldesitzung: <b data-th-text="${ssoInfo}">x</b>. Der Dienst verlangt eine neue Anmeldung
+                oder ein höheres Vertrauensniveau – Person und fachlicher Kontext sind vorbelegt.
+                <a data-th-href="@{__${basepath}__/sso/logout}">Sitzung beenden</a>
+            </div>
             <!-- Anzeige Personenliste als Radio-Group -->
             <div class="row row-cols-3 g-2">
                 <div class="col" th:each="user, iterStat: ${userlist}">

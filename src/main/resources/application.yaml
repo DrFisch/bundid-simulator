@@ -64,6 +64,20 @@ app:
       keystore: ""             # PKCS12-Datei mit Schlüssel und Zertifikat
       password: ""
       alias: "idp-signing"
+  sso:
+    enabled: false             # true = Anmeldesitzung (Single Sign-on), Umgebungsvariable APP_SSO_ENABLED
+
+# Fork: Sitzungscookie des simulierten IdP (nur für die Anmeldesitzung genutzt). Nur Cookie, keine Sitzungs-ID in URLs.
+# Hinter einem TLS-Proxy zusätzlich SERVER_SERVLET_SESSION_COOKIE_SECURE=true setzen.
+server:
+  servlet:
+    session:
+      timeout: 30m
+      tracking-modes: cookie
+      cookie:
+        name: BUNDIDSIM_SSO
+        http-only: true
+        same-site: lax
 
 management:
   endpoints:

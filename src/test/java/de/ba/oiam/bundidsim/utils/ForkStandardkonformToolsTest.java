@@ -35,6 +35,15 @@ class ForkStandardkonformToolsTest {
     }
 
     @Test
+    void ranksLevelsForSingleSignOn() {
+        assertThat(AuthLevelTools.rank(null)).isEqualTo(1);
+        assertThat(AuthLevelTools.rank("STORK-QAA-Level-1")).isEqualTo(1);
+        assertThat(AuthLevelTools.rank("http://eidas.europa.eu/LoA/substantial")).isEqualTo(3);
+        assertThat(AuthLevelTools.rank("STORK-QAA-Level-4")).isEqualTo(4);
+        assertThat(AuthLevelTools.rank("urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos")).isEqualTo(4);
+    }
+
+    @Test
     void rejectsDoctype() {
         String xml = "<!DOCTYPE x [<!ENTITY e SYSTEM \"file:///etc/passwd\">]><x>&e;</x>";
         assertThatThrownBy(() -> XmlParserTools.parseXmlNamespaceAware(xml)).isInstanceOf(Exception.class);

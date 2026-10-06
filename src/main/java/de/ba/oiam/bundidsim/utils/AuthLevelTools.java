@@ -115,6 +115,21 @@ public class AuthLevelTools {
      * normalisiert das angeforderte Niveau aus dem AuthnRequest: getrimmt; eIDAS-LoA-URIs werden auf die
      * STORK-Bezeichner abgebildet. Andere Werte bleiben unverändert (Originalverhalten).
      */
+    /**
+     * Fork: Rang eines (normalisierten) Niveaus für Vergleiche: STORK-QAA-Level-1 → 1, -3 → 3, -4 → 4,
+     * fehlend → 1 (Mindestniveau), unbekannt → 4 (wie createIdentificationWithList: nur Mittel mit hohem Niveau).
+     */
+    public static int rank(String storkLevel) {
+        if (!StringUtils.hasText(storkLevel)) {
+            return 1;
+        }
+        return switch (normalizeRequestedLevel(storkLevel)) {
+            case STORK_1 -> 1;
+            case STORK_3 -> 3;
+            default -> 4;
+        };
+    }
+
     public static String normalizeRequestedLevel(String level) {
         if (!StringUtils.hasText(level)) {
             return level;

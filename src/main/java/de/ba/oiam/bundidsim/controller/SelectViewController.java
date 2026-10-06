@@ -2,14 +2,15 @@ package de.ba.oiam.bundidsim.controller;
 
 import de.ba.oiam.bundidsim.model.BundIdUser;
 import de.ba.oiam.bundidsim.model.SamlRequestValues;
-import de.ba.oiam.bundidsim.model.SamlResponseValues;
 import de.ba.oiam.bundidsim.model.Status;
 import de.ba.oiam.bundidsim.model.view.SelectFormData;
 import de.ba.oiam.bundidsim.model.view.SelectFormDataValidator;
-import de.ba.oiam.bundidsim.services.SamlResponseGeneratorService;
+import de.ba.oiam.bundidsim.services.AuthResponseService;
+import de.ba.oiam.bundidsim.services.SsoSessionService;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,19 +23,22 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
 /**
  * Schnellauswahl einer Person und Identifizierungsdaten.
+ *
+ * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Response über AuthResponseService, erfolgreiche
+ * Anmeldung als Anmeldesitzung (SSO).
  */
 @Controller
 @Slf4j
 public class SelectViewController {
 
     @Autowired
-    private SamlResponseGeneratorService samlResponseGeneratorService;
+    private AuthResponseService authResponseService;
+
+    @Autowired
+    private SsoSessionService ssoSessionService;
 
     @Autowired
     private UserDefinitionService userService;
@@ -65,6 +69,7 @@ public class SelectViewController {
     @PostMapping(path = "/select/submit")
     public String submitFormPage(
             Model model,
+            HttpServletRequest request,
             @Valid @ModelAttribute("formdata") SelectFormData formData,
             BindingResult bindingResult) {
 
@@ -92,7 +97,11 @@ public class SelectViewController {
         BundIdUser user = userService.getUserById(formData.getUserId());
         user = addDataToUser(user, formData);
         log.debug("BundIdUser: [{}]", user);
-        return prepareSamlResponse(model, formData.getSamlRequest(), samlStatus, user, user.getEidCitizenQaaLevel());
+        // Fork: erfolgreiche Anmeldung als Anmeldesitzung (SSO) merken
+        if (SelectFormData.STATUS_OK.equalsIgnoreCase(formData.getStatus())) {
+            ssoSessionService.remember(request, user, formData.getUserId(), formData.getDomainContext());
+        }
+        return authResponseService.prepareSamlResponse(model, formData.getSamlRequest(), samlStatus, user, user.getEidCitizenQaaLevel());
     }
 
     /**
@@ -106,7 +115,7 @@ public class SelectViewController {
         log.debug("call QuickSelectionView-Cancel...");
         Status samlStatus = Status.buildCancelStatus();
 
-        return prepareSamlResponse(model, formData.getSamlRequest(), samlStatus, null, "");
+        return authResponseService.prepareSamlResponse(model, formData.getSamlRequest(), samlStatus, null, "");
     }
 
     // private helper
@@ -133,35 +142,6 @@ public class SelectViewController {
         }
         return user;
     }
-
-    private String prepareSamlResponse(Model model, String samlRequest, Status samlStatus, BundIdUser user, String authnLevel) {
-
-        SamlRequestValues requestParams = ObjectStringConverter.decodeAndDeserialize(samlRequest, SamlRequestValues.class);
-
-        SamlResponseValues responseParams =
-                SamlResponseValues.builder()
-                        .id(UUID.randomUUID().toString())
-                        .assertionId(UUID.randomUUID().toString())
-                        .requestId(requestParams.getId())
-                        .spEntityId(requestParams.getIssuer())
-                        .idpId(requestParams.getIssuer())
-                        .created(Instant.now().truncatedTo(ChronoUnit.SECONDS))
-                        .ascUrl(requestParams.getAscUrl())
-                        .nameId(user != null ? user.getBpk2() : null)
-                        .userAuthnLevel(authnLevel)
-                        .build();
-        log.debug("ResponseParams; [{}]", responseParams);
-
-        String samlResponseAsString =
-                samlResponseGeneratorService.generateSamlResponse(
-                        samlStatus, user, responseParams);
-
-        model.addAttribute("saml_response", samlResponseAsString);
-        model.addAttribute("relay_state", requestParams.getRelayState());
-        model.addAttribute("post_url", requestParams.getAscUrl());
-        return "auth_response";
-    }
-
 
     // ****************************************************************************************************
 
