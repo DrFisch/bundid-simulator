@@ -66,6 +66,15 @@ app:
       alias: "idp-signing"
   sso:
     enabled: false             # true = Anmeldesitzung (Single Sign-on), Umgebungsvariable APP_SSO_ENABLED
+  # Postfach der simulierten BundID (Fork): Nachrichten an das Postkorb-Handle, Anzeige nach Anmeldung (braucht
+  # app.sso.enabled=true). Umgebungsvariablen APP_POSTFACH_ENABLED, APP_POSTFACH_APIKEY, APP_POSTFACH_STORAGEDIR,
+  # APP_POSTFACH_PORTALURL, APP_POSTFACH_PORTALNAME.
+  postfach:
+    enabled: false             # true = /postfach (Oberfläche) und POST /api/v1/messages (Einlieferung)
+    api-key: ""                # Schlüssel der einliefernden Dienste (Header X-Api-Key); leer = Einlieferung gesperrt
+    storage-dir: "/app/data/postfach"
+    portal-url: ""             # optional: Link „Zurück zu …“ im Postfach, z. B. https://portal.example.de/
+    portal-name: ""            # Name dazu, z. B. "BürgerPortal"
 
 # Fork: Sitzungscookie des simulierten IdP (nur für die Anmeldesitzung genutzt). Nur Cookie, keine Sitzungs-ID in URLs.
 # Hinter einem TLS-Proxy zusätzlich SERVER_SERVLET_SESSION_COOKIE_SECURE=true setzen.
