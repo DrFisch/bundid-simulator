@@ -4,6 +4,7 @@ import de.ba.oiam.bundidsim.model.BundIdUser;
 import de.ba.oiam.bundidsim.model.SamlResponseValues;
 import de.ba.oiam.bundidsim.model.Status;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
+import de.ba.oiam.bundidsim.utils.PostkorbHandleTools;
 import de.ba.oiam.bundidsim.utils.ResourceUtils;
 import de.ba.oiam.bundidsim.utils.XmlParserTools;
 import lombok.extern.slf4j.Slf4j;
@@ -96,10 +97,7 @@ public class SamlResponseGeneratorService {
             user.setPostkorbHandle(null);
             return;
         }
-        if (!StringUtils.hasText(user.getPostkorbHandle()) && StringUtils.hasText(user.getBpk2())) {
-            user.setPostkorbHandle(UUID.nameUUIDFromBytes(
-                    ("bundid-simulator-postkorb:" + user.getBpk2()).getBytes(StandardCharsets.UTF_8)).toString());
-        }
+        user.setPostkorbHandle(PostkorbHandleTools.handleOf(user));
     }
 
     /**

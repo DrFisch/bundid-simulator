@@ -10,13 +10,13 @@ import de.ba.oiam.bundidsim.services.SsoSessionService;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
+import de.ba.oiam.bundidsim.utils.PersonTools;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
  * Schnellauswahl einer Person und Identifizierungsdaten.
  *
  * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Response über AuthResponseService, erfolgreiche
- * Anmeldung als Anmeldesitzung (SSO).
+ * Anmeldung als Anmeldesitzung (SSO), Vervollständigen der Person in PersonTools.
  */
 @Controller
 @Slf4j
@@ -95,7 +95,8 @@ public class SelectViewController {
         // Validierung OK, SAML-Response erstellen
         Status samlStatus = Status.createStatusFromKey(formData.getStatus());
         BundIdUser user = userService.getUserById(formData.getUserId());
-        user = addDataToUser(user, formData);
+        user = PersonTools.applySelection(user, formData.getIdentifikationWith(), formData.getEidasCountry(),
+                formData.getEidasLoa(), formData.getDomainContext());
         log.debug("BundIdUser: [{}]", user);
         // Fork: erfolgreiche Anmeldung als Anmeldesitzung (SSO) merken
         if (SelectFormData.STATUS_OK.equalsIgnoreCase(formData.getStatus())) {
@@ -118,44 +119,6 @@ public class SelectViewController {
         return authResponseService.prepareSamlResponse(model, formData.getSamlRequest(), samlStatus, null, "");
     }
 
-    // private helper
-
-
-    private BundIdUser addDataToUser(BundIdUser user, SelectFormData formData) {
-
-        // User-Daten vervollständigen
-        user.setAssertionProvedBy(formData.getIdentifikationWith()); // Identifizierungsmittel
-        user.setEidCitizenQaaLevel(
-                AuthLevelTools.getAuthnLevelByIdentificationMethod(formData.getIdentifikationWith()));
-        user.setVersion("2021.7.1");
-        if (AuthLevelTools.IDENTIFICATION_EIDAS.equalsIgnoreCase(formData.getIdentifikationWith())) {
-            // Speziell für eIDAS-Identifikation
-            user.setEidasIssuingCountry(formData.getEidasCountry());
-            user.setEidCitizenQaaLevel(AuthLevelTools.getAuthnLevelByLoa(formData.getEidasLoa()));
-        }
-
-        String domainContext = formData.getDomainContext();
-        if (StringUtils.hasText(domainContext)) {
-            // Suffix an die bpk2 anfügen
-            user.setBpk2(user.getBpk2() + domainContext);
-            user.setMail(changeMailAddress(user.getMail(), domainContext));
-        }
-        return user;
-    }
-
-    // ****************************************************************************************************
-
-
-    /**
-     * Manipulation einer Email-Adresse: Gegeben: email: "test@online.de", context: "-team" Ergebnis:
-     * "test-team@online.de"
-     *
-     * @param email
-     * @param context
-     * @return
-     */
-    private String changeMailAddress(String email, String context) {
-        String[] emailParts = email.split("@");
-        return emailParts[0] + context + "@" + emailParts[1];
-    }
+    // Fork: Vervollständigen der Person (vorher addDataToUser/changeMailAddress hier) in PersonTools – die
+    // Anmeldung am Postfach des Simulators nutzt dieselbe Logik.
 }
