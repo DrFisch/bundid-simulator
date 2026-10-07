@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Anmeldung am BundID-Konto für das Postfach. -->
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head data-th-replace="~{postfach/rahmen :: head('Anmelden')}"></head>
+<body>
+<nav data-th-replace="~{postfach/rahmen :: nav}"></nav>
+<main class="container pb-4" style="max-width: 900px;">
+    <h1 class="h4">Anmelden am BundID-Konto</h1>
+    <p class="text-muted">
+        Wählen Sie eine Testperson. Wer gerade bei einem Dienst mit der BundID angemeldet ist, sieht sein Postfach ohne
+        diese Auswahl (Anmeldesitzung).
+    </p>
+
+    <div class="alert alert-success" data-th-if="${abgemeldet}">Sie sind abgemeldet. Die Anmeldesitzung der BundID ist beendet.</div>
+    <div class="alert alert-danger" data-th-if="${ssoAus}">
+        Die Anmeldesitzung (APP_SSO_ENABLED) ist abgeschaltet – ohne sie kann sich das Postfach die Anmeldung nicht merken.
+    </div>
+    <div class="alert alert-info" data-th-if="${niveauName}"
+         data-th-text="'Für diese Nachricht ist mindestens das Vertrauensniveau „' + ${niveauName} + '“ nötig. Zur Auswahl stehen nur passende Identifizierungsmittel.'">
+        Höheres Niveau nötig.
+    </div>
+
+    <form method="post" data-th-action="@{__${basepath}__/postfach/anmelden}" class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <fieldset class="mb-3">
+                <legend class="h6">Person</legend>
+                <div class="row row-cols-1 row-cols-md-2 g-2">
+                    <div class="col" data-th-each="user, iterStat : ${userlist}">
+                        <div class="form-check border rounded p-2 ps-5 h-100 bg-white">
+                            <input class="form-check-input" type="radio" name="userId" data-th-id="'person_' + ${iterStat.count}"
+                                   data-th-value="${user.id}" data-th-checked="${user.id == userId}">
+                            <label class="form-check-label small" data-th-for="'person_' + ${iterStat.count}">
+                                <span class="fw-bold" data-th-text="${user.givenname} + ' ' + ${user.surname}">Name</span><br>
+                                <span class="text-muted" data-th-text="${user.localityName}">Ort</span>
+                                · bPK2 <code data-th-text="${user.bpk2}">bpk2</code>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="identifikationWith">Identifizierung mit</label>
+                    <select class="form-select" id="identifikationWith" name="identifikationWith">
+                        <option data-th-each="item : ${identWithList}" data-th-value="${item[0]}" data-th-text="${item[1]}"
+                                data-th-selected="${item[0] == identification}">eID</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="domainContext">Fachlicher Kontext (optional)</label>
+                    <input class="form-control" id="domainContext" name="domainContext" data-th-value="${domainContext}">
+                    <div class="form-text">Wie in der Personenauswahl des Simulators: gleicher Kontext = gleiche bPK2 = gleiches Postfach.</div>
+                </div>
+            </div>
+            <input type="hidden" name="niveau" data-th-if="${niveau}" data-th-value="${niveau}">
+            <input type="hidden" name="ziel" data-th-value="${ziel}">
+            <button type="submit" id="postfachAnmelden" class="btn btn-primary">Anmelden</button>
+        </div>
+    </form>
+</main>
+<footer data-th-replace="~{postfach/rahmen :: footer}"></footer>
+</body>
+</html>

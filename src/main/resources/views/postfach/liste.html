@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Nachrichtenliste des Postfachs. -->
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head data-th-replace="~{postfach/rahmen :: head('Postfach')}"></head>
+<body>
+<nav data-th-replace="~{postfach/rahmen :: nav}"></nav>
+<main class="container pb-4" style="max-width: 900px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+        <h1 class="h4 mb-0">Nachrichten</h1>
+        <span class="text-muted small" data-th-if="${!#lists.isEmpty(eintraege)}"
+              data-th-text="${#lists.size(eintraege)} + ' Nachricht(en), davon ' + ${ungelesen} + ' ungelesen'">0</span>
+    </div>
+
+    <div class="alert alert-secondary" data-th-if="${#lists.isEmpty(eintraege)}">
+        Ihr Postfach ist leer. Bestätigungen zu Terminen und Anträgen erscheinen hier, sobald ein Dienst sie an Ihr
+        Postkorb-Handle schickt.
+    </div>
+
+    <div class="list-group shadow-sm" data-th-unless="${#lists.isEmpty(eintraege)}">
+        <a class="list-group-item list-group-item-action py-3" data-th-each="e : ${eintraege}"
+           data-th-classappend="${e.unread} ? 'eintrag-neu'"
+           data-th-href="@{__${basepath}__/postfach/nachricht/{id}(id=${e.id})}">
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+                <span data-th-classappend="${e.unread} ? 'fw-bold'">
+                    <span class="badge bg-primary me-1" data-th-if="${e.unread}">neu</span>
+                    <span data-th-text="${e.title}">Titel</span>
+                </span>
+                <small class="text-muted" data-th-text="${e.received} + ' Uhr'">Datum</small>
+            </div>
+            <small class="text-muted" data-th-text="${e.sender} + ' · ' + ${e.service}">Absender</small>
+            <div class="small mt-1" data-th-if="${e.requiresHigherLevel}">
+                <span class="badge bg-secondary" data-th-text="'Vertrauensniveau „' + ${e.levelName} + '“ nötig'">Niveau</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="mt-4" data-th-if="${portalUrl}">
+        <a class="btn btn-outline-primary" data-th-href="${portalUrl}" data-th-text="'← Zurück zum ' + ${portalName}">Zurück</a>
+    </div>
+</main>
+<footer data-th-replace="~{postfach/rahmen :: footer}"></footer>
+</body>
+</html>

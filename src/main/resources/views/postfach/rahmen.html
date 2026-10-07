@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Rahmen der Postfach-Seiten. -->
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head data-th-fragment="head(titel)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title data-th-text="${titel} + ' – Mein BundID-Postfach (Simulation)'">Postfach</title>
+    <link rel="stylesheet" data-th-href="@{__${basepath}__/webjars/bootstrap/css/bootstrap.min.css}">
+    <style>
+        body { background: #f4f6f9; }
+        .postfach-nav { background: #1d3557; }
+        .eintrag-neu { border-left: 4px solid #0d6efd; }
+        .inhalt { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark postfach-nav mb-4" data-th-fragment="nav">
+    <div class="container flex-wrap gap-2">
+        <a class="navbar-brand d-flex align-items-center gap-2" data-th-href="@{__${basepath}__/postfach}">
+            <span class="fw-semibold">Mein BundID-Postfach</span>
+            <span class="badge bg-warning text-dark">Simulation</span>
+        </a>
+        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
+            <a class="btn btn-sm btn-light" data-th-if="${portalUrl}" data-th-href="${portalUrl}"
+               data-th-text="'← Zurück zum ' + ${portalName}">← Zurück zum Dienst</a>
+            <span class="navbar-text small" data-th-if="${sessionName}"
+                  data-th-text="${sessionName} + ' · Niveau „' + ${sessionLevel} + '“'">Name</span>
+            <form method="post" class="m-0" data-th-if="${sessionName}" data-th-action="@{__${basepath}__/postfach/abmelden}">
+                <button type="submit" class="btn btn-sm btn-outline-light">Abmelden</button>
+            </form>
+        </div>
+    </div>
+</nav>
+<footer class="container border-top py-3 small text-muted" data-th-fragment="footer">
+    Simulation für ein Studienprojekt: Postfach des BundID-Simulators (Fork), kein echtes BundID-Postfach. Alle Personen
+    sind fiktive Testpersonen – bitte keine echten Daten verwenden. Bei der echten BundID ist das Postfach Teil des
+    Kontos auf id.bund.de; Behörden stellen Nachrichten über das Zentrale Bürgerpostfach (ZBP) zu.
+</footer>
+</body>
+</html>

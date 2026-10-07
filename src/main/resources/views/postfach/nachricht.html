@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): eine Nachricht des Postfachs. -->
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head data-th-replace="~{postfach/rahmen :: head(${nachricht.title})}"></head>
+<body>
+<nav data-th-replace="~{postfach/rahmen :: nav}"></nav>
+<main class="container pb-4" style="max-width: 900px;">
+    <p><a data-th-href="@{__${basepath}__/postfach}">← Zurück zur Nachrichtenliste</a></p>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h1 class="h4" data-th-text="${nachricht.title}">Titel</h1>
+            <dl class="row small text-muted mb-3">
+                <dt class="col-sm-3">Von</dt>
+                <dd class="col-sm-9" data-th-text="${nachricht.sender}">Absender</dd>
+                <dt class="col-sm-3">Leistung</dt>
+                <dd class="col-sm-9" data-th-text="${nachricht.service}">Leistung</dd>
+                <dt class="col-sm-3">Eingegangen</dt>
+                <dd class="col-sm-9" data-th-text="${empfangen} + ' Uhr'">Datum</dd>
+                <th:block data-th-if="${gelesen}">
+                    <dt class="col-sm-3">Zuerst gelesen</dt>
+                    <dd class="col-sm-9" data-th-text="${gelesen} + ' Uhr'">Datum</dd>
+                </th:block>
+                <th:block data-th-if="${nachricht.replyAddress}">
+                    <dt class="col-sm-3">Antwortadresse</dt>
+                    <dd class="col-sm-9" data-th-text="${nachricht.replyAddress}">Adresse</dd>
+                </th:block>
+            </dl>
+
+            <div class="alert alert-warning mb-0" data-th-unless="${lesbar}">
+                <p data-th-text="'Diese Nachricht ist erst mit dem Vertrauensniveau „' + ${levelName} + '“ lesbar. Sie sind mit „' + ${sessionLevel} + '“ angemeldet.'">
+                    Höheres Niveau nötig.
+                </p>
+                <a class="btn btn-primary"
+                   data-th-href="@{__${basepath}__/postfach/anmelden(niveau=${nachricht.storkQaaLevel},ziel=${'/postfach/nachricht/' + nachricht.id})}">
+                    Mit höherem Niveau anmelden</a>
+                <span class="small ms-2">z. B. mit ELSTER-Zertifikat oder Online-Ausweis</span>
+            </div>
+            <!-- Klartext: Thymeleaf maskiert den Inhalt, Zeilenumbrüche bleiben erhalten. -->
+            <div class="border rounded p-3 bg-white inhalt" data-th-if="${lesbar}" data-th-text="${nachricht.content}">Inhalt</div>
+        </div>
+    </div>
+</main>
+<footer data-th-replace="~{postfach/rahmen :: footer}"></footer>
+</body>
+</html>
