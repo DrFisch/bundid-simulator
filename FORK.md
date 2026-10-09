@@ -69,6 +69,9 @@ Simulator wie bisher die Auswahl.
   `xsi:type="xs:string"` mit deklariertem Präfix; alle eingesetzten Werte XML-maskiert; Response als UTF-8.
 - `field_definitions.yml`: Leerzeichen in zwei OIDs entfernt (`personalTitle`, `EID-CITIZEN-QAA-LEVEL`).
 - Docker: Container läuft als Benutzer `simulator` (UID 10001) statt root; Datenverzeichnis `/app/data`.
+- Auto-POST der SAML-Response (`auth_response.html`) ohne Inline-Skript und ohne `onload`-Attribut: Das Skript liegt
+  in `static/js/auth-response.js`. Damit kann ein Reverse Proxy eine Content-Security-Policy mit `script-src 'self'`
+  (ohne `'unsafe-inline'`) setzen. Verhalten unverändert.
 
 ## Tests
 

@@ -4,15 +4,11 @@
 <head>
     <meta http-equiv='content-type' content='text/html; charset=utf-8'/>
     <title>POST data</title>
-    <script>
-        function setRequestPathCookies() {
-            var requestPath = window.location.pathname + window.location.search + window.location.hash;
-            document.cookie = "saml_request_path=\"+encodeURIComponent(requestPath)+\";path=/;";
-        }
-    </script>
+    <!-- Geändert 2026 im Fork bpsim/standardkonform (FORK.md): Skript als Datei statt inline/onload (CSP) -->
+    <script src="/js/auth-response.js" data-th-src="@{__${basepath}__/js/auth-response.js}"></script>
 </head>
 
-<body onload="setRequestPathCookies(); document.forms[0].submit();">
+<body>
 <img src="/img/loading.gif" data-th-src="@{__${basepath}__/images/loading.gif}" alt="loading spinner"
      style="position:absolute; top:50%; left:50%; margin-top:-145px; margin-left:-220px;"/>
 
