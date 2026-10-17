@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Rahmen der Postfach-Seiten. -->
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Rahmen der Postfach-Seiten. Kopfzeile einzeilig:
+     Zurück zum Dienst, Titel, Konto-Menü (details/summary – ohne Skript, CSP script-src 'self'). -->
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head data-th-fragment="head(titel)">
     <meta charset="utf-8">
@@ -11,25 +12,41 @@
         body { background: #f4f6f9; }
         .postfach-nav { background: #1d3557; }
         .eintrag-neu { border-left: 4px solid #0d6efd; }
+        /* Nachrichten als Karten mit Abstand, ungelesene mit Punkt */
+        .bpsim-karten { gap: .5rem; }
+        .bpsim-karten > .list-group-item { border-width: 1px !important; border-radius: .75rem !important; }
+        .bpsim-punkt { display: inline-block; width: .65rem; height: .65rem; padding: 0; vertical-align: .1em; }
+        /* Konto-Menü */
+        .bpsim-konto { position: relative; }
+        .bpsim-konto > summary { list-style: none; }
+        .bpsim-konto > summary::-webkit-details-marker { display: none; }
+        .bpsim-konto-menue { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 15rem; z-index: 1000; }
+        @media (max-width: 575.98px) { .postfach-nav .navbar-brand { font-size: 1.05rem; } }
         .inhalt { white-space: pre-wrap; }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-dark postfach-nav mb-4" data-th-fragment="nav">
-    <div class="container flex-wrap gap-2">
-        <a class="navbar-brand d-flex align-items-center gap-2" data-th-href="@{__${basepath}__/postfach}">
-            <span class="fw-semibold">Mein BundID-Postfach</span>
+    <div class="container flex-nowrap gap-2">
+        <a class="btn btn-sm btn-light flex-shrink-0" data-th-if="${portalUrl}" data-th-href="${portalUrl}"
+           data-th-attr="aria-label='Zurück zum ' + ${portalName}"><span aria-hidden="true">←</span><span
+                class="d-none d-md-inline" data-th-text="' Zurück zum ' + ${portalName}"> Zurück zum Dienst</span></a>
+        <a class="navbar-brand d-flex align-items-center gap-2 me-auto text-truncate" data-th-href="@{__${basepath}__/postfach}">
+            <span class="fw-semibold text-truncate"><span class="d-none d-sm-inline">Mein </span>BundID-Postfach</span>
             <span class="badge bg-warning text-dark">Simulation</span>
         </a>
-        <div class="d-flex flex-wrap align-items-center gap-2 ms-auto">
-            <a class="btn btn-sm btn-light" data-th-if="${portalUrl}" data-th-href="${portalUrl}"
-               data-th-text="'← Zurück zum ' + ${portalName}">← Zurück zum Dienst</a>
-            <span class="navbar-text small" data-th-if="${sessionName}"
-                  data-th-text="${sessionName} + ' · Niveau „' + ${sessionLevel} + '“'">Name</span>
-            <form method="post" class="m-0" data-th-if="${sessionName}" data-th-action="@{__${basepath}__/postfach/abmelden}">
-                <button type="submit" class="btn btn-sm btn-outline-light">Abmelden</button>
-            </form>
-        </div>
+        <details class="bpsim-konto flex-shrink-0" data-th-if="${sessionName}">
+            <summary class="btn btn-sm btn-outline-light">Konto <span aria-hidden="true">▾</span></summary>
+            <div class="bpsim-konto-menue card shadow">
+                <div class="card-body p-3">
+                    <div class="fw-semibold" data-th-text="${sessionName}">Name</div>
+                    <div class="small text-muted mb-3" data-th-text="'Angemeldet mit Niveau „' + ${sessionLevel} + '“'">Niveau</div>
+                    <form method="post" class="m-0" data-th-action="@{__${basepath}__/postfach/abmelden}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Abmelden</button>
+                    </form>
+                </div>
+            </div>
+        </details>
     </div>
 </nav>
 <footer class="container border-top py-3 small text-muted" data-th-fragment="footer">

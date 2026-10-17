@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Nachrichtenliste des Postfachs. -->
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Nachrichtenliste des Postfachs (Karten, Punkt für
+     ungelesen; „Zurück zum Dienst“ nur in der Kopfzeile). -->
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head data-th-replace="~{postfach/rahmen :: head('Postfach')}"></head>
 <body>
@@ -16,13 +17,13 @@
         Postkorb-Handle schickt.
     </div>
 
-    <div class="list-group shadow-sm" data-th-unless="${#lists.isEmpty(eintraege)}">
-        <a class="list-group-item list-group-item-action py-3" data-th-each="e : ${eintraege}"
+    <div class="list-group bpsim-karten" data-th-unless="${#lists.isEmpty(eintraege)}">
+        <a class="list-group-item list-group-item-action py-3 shadow-sm" data-th-each="e : ${eintraege}"
            data-th-classappend="${e.unread} ? 'eintrag-neu'"
            data-th-href="@{__${basepath}__/postfach/nachricht/{id}(id=${e.id})}">
             <div class="d-flex flex-wrap justify-content-between gap-2">
                 <span data-th-classappend="${e.unread} ? 'fw-bold'">
-                    <span class="badge bg-primary me-1" data-th-if="${e.unread}">neu</span>
+                    <span class="badge rounded-pill bg-primary bpsim-punkt me-1" data-th-if="${e.unread}"><span class="visually-hidden">neu</span></span>
                     <span data-th-text="${e.title}">Titel</span>
                 </span>
                 <small class="text-muted" data-th-text="${e.received} + ' Uhr'">Datum</small>
@@ -34,9 +35,6 @@
         </a>
     </div>
 
-    <div class="mt-4" data-th-if="${portalUrl}">
-        <a class="btn btn-outline-primary" data-th-href="${portalUrl}" data-th-text="'← Zurück zum ' + ${portalName}">Zurück</a>
-    </div>
 </main>
 <footer data-th-replace="~{postfach/rahmen :: footer}"></footer>
 </body>
