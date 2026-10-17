@@ -11,7 +11,10 @@ import de.ba.oiam.bundidsim.services.UserDefinitionService;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
 import de.ba.oiam.bundidsim.utils.PersonTools;
+import de.ba.oiam.bundidsim.utils.SchnellAnmeldungTools;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +25,16 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Arrays;
 
 
 /**
  * Schnellauswahl einer Person und Identifizierungsdaten.
  *
  * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Response über AuthResponseService, erfolgreiche
- * Anmeldung als Anmeldesitzung (SSO), Vervollständigen der Person in PersonTools.
+ * Anmeldung als Anmeldesitzung (SSO), Vervollständigen der Person in PersonTools, Schnellanmeldung mit John Doe.
  */
 @Controller
 @Slf4j
@@ -89,6 +95,7 @@ public class SelectViewController {
             model.addAttribute(
                     "identWithList",
                     AuthLevelTools.createIdentificationWithList(requestParams.getReqAuthnLevel()));
+            addQuickLogin(model, userService, requestParams.getReqAuthnLevel());
             return "select_view";
         }
 
@@ -117,6 +124,45 @@ public class SelectViewController {
         Status samlStatus = Status.buildCancelStatus();
 
         return authResponseService.prepareSamlResponse(model, formData.getSamlRequest(), samlStatus, null, "");
+    }
+
+    /**
+     * Fork: Schnellanmeldung mit der fiktiven Person John Doe (Hof, Bayern) – ein Klick und eine Bestätigung. Das
+     * Identifizierungsmittel passt zum geforderten Niveau, der fachliche Kontext ist je Gerät fest (Cookie); danach
+     * wie „Person übernehmen“: Anmeldesitzung merken, signierte SAML-Response per HTTP-POST an den Dienst.
+     */
+    @PostMapping(path = "/select/schnell")
+    public String quickLogin(Model model, HttpServletRequest request, HttpServletResponse response,
+                             @RequestParam("samlRequest") String samlRequest) {
+        SamlRequestValues requestParams = ObjectStringConverter.decodeAndDeserialize(samlRequest, SamlRequestValues.class);
+        String identification = SchnellAnmeldungTools.identifikation(requestParams.getReqAuthnLevel())[0];
+
+        String saved = request.getCookies() == null ? null : Arrays.stream(request.getCookies())
+                .filter(c -> SchnellAnmeldungTools.COOKIE.equals(c.getName())).map(Cookie::getValue).findFirst().orElse(null);
+        String deviceId = SchnellAnmeldungTools.kennung(saved, SchnellAnmeldungTools::neueKennung);
+        Cookie cookie = new Cookie(SchnellAnmeldungTools.COOKIE, deviceId);
+        cookie.setMaxAge(365 * 24 * 60 * 60);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+
+        String domainContext = SchnellAnmeldungTools.kontext(deviceId);
+        BundIdUser user = PersonTools.applySelection(userService.getUserById(SchnellAnmeldungTools.USER_ID),
+                identification, null, null, domainContext);
+        log.debug("Schnellanmeldung: [{}] mit [{}]", user.getBpk2(), identification);
+        ssoSessionService.remember(request, user, SchnellAnmeldungTools.USER_ID, domainContext);
+        return authResponseService.prepareSamlResponse(model, samlRequest, Status.buildOkStatus(), user,
+                user.getEidCitizenQaaLevel());
+    }
+
+    /** Fork: Daten für die Karte „Schnelle Anmeldung“ auf der Auswahlseite (auch von SamlController genutzt). */
+    static void addQuickLogin(Model model, UserDefinitionService users, String reqAuthnLevel) {
+        String[] identification = SchnellAnmeldungTools.identifikation(reqAuthnLevel);
+        model.addAttribute("schnellPerson", users.getUserById(SchnellAnmeldungTools.USER_ID));
+        model.addAttribute("schnellIdent", identification[1]);
+        model.addAttribute("schnellNiveau", SchnellAnmeldungTools.niveauName(identification[0]));
     }
 
     // Fork: Vervollständigen der Person (vorher addDataToUser/changeMailAddress hier) in PersonTools – die

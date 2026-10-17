@@ -115,4 +115,17 @@ users:
     gender: "1"
     birthdate: "1978-05-17"
     bpk2: "BUNDIDSIM-U12"
-
+  # Fork bpsim/standardkonform: fiktive Person für die Schnellanmeldung (Hof, Bayern; SchnellAnmeldungTools)
+  - id: "U20"
+    surname: "Doe"
+    givenname: "John"
+    mail: "john.doe@example.com"
+    postalAddress: "Musterstraße 1"
+    postalCode: "95028"
+    localityName: "Hof"
+    country: "DE"
+    personalTitle: ""
+    gender: "1"
+    birthdate: "1990-04-01"
+    placeOfBirth: "München"
+    bpk2: "BUNDIDSIM-JD"

@@ -139,6 +139,8 @@ public class SamlController {
         model.addAttribute("formdata", formData);
         model.addAttribute("userlist", userList);
         model.addAttribute("identWithList", identWithList);
+        // Fork: Karte „Schnelle Anmeldung“ (John Doe)
+        SelectViewController.addQuickLogin(model, userService, samlRequestModel.getReqAuthnLevel());
         log.debug("Model: [{}]", formData.toString());
 
         return "select_view";
