@@ -1,6 +1,10 @@
 <!DOCTYPE html>
+<!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Zeichensatz und viewport im gemeinsamen Kopf,
+     Kopfzeile auf dem Handy kompakt. -->
 <html lang="de">
 <head data-th-fragment="head">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title data-th-text="${@environment.getProperty('app.web.title')}">Title</title>
     <link rel="stylesheet" type="text/css" data-th-href="@{__${basepath}__/webjars/bootstrap/css/bootstrap.min.css}">
     <link rel="stylesheet" type="text/css" data-th-href="@{__${basepath}__/css/layout.css}">
@@ -8,9 +12,9 @@
 <body>
 <!-- ************************************************************************************** -->
 <nav class="navbar navbar-dark mb-4" data-th-fragment="navbar">
-    <div class="container">
-        <span class="h1" data-th-text="${@environment.getProperty('app.web.title')}"></span>
-        <span class="ms-auto">Umgebung: <strong
+    <div class="container flex-wrap gap-1">
+        <span class="h1 mb-0 bpsim-titel" data-th-text="${@environment.getProperty('app.web.title')}"></span>
+        <span class="ms-auto small">Umgebung: <strong
                 data-th-text="${@environment.getProperty('app.env')}">xxx</strong></span>
     </div>
 </nav>

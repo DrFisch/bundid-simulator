@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Sprache de, Felder auf dem Handy untereinander,
+     Knöpfe unten fest. -->
+<html lang="de">
 <head data-th-insert="~{fragments/snippets :: head}">
     <title>Eid-BundID-IdpMock</title>
 </head>
@@ -12,18 +14,18 @@
         </div>
         <!-- neue Zeile -->
         <div class="row g-2 mb-3">
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="form-floating">
-                    <input type="text" class="form-control" style="font-size:80%;" id="userbpk2"
+                    <input type="text" class="form-control" style="font-size:80%;" id="userbpk2" autocapitalize="off" spellcheck="false"
                            data-th-field="*{user.bpk2}" value="a"
                            data-th-classappend="${#fields.hasErrors('user.bpk2')} ? 'is-invalid' : ''">
                     <label for="userbpk2"><span class="text-danger bolder">*</span> bPK2:</label>
                     <div id="userbpk2feedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="form-floating">
-                    <input type="text" class="form-control" id="usermail"
+                    <input type="text" inputmode="email" class="form-control" id="usermail" autocapitalize="off" spellcheck="false"
                            data-th-field="*{user.mail}" value="a"
                            data-th-classappend="${#fields.hasErrors('user.mail')} ? 'is-invalid' : ''">
                     <label for="usermail"><span class="text-danger bolder">*</span> Email:</label>
@@ -33,7 +35,7 @@
         </div>
         <!-- neue Zeile -->
         <div class="row g-2 mb-3">
-            <div class="col-2">
+            <div class="col-6 col-md-2">
                 <div class="form-floating">
                     <select class="form-select" id="usergender" data-th-field="*{user.gender}">
                         <option value="1">Herr</option>
@@ -43,14 +45,14 @@
                     <label for="usergender">Anrede:</label>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-6 col-md-2">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="userpersonaltitle" value="a"
                            data-th-field="*{user.personalTitle}">
                     <label for="userpersonaltitle">Titel:</label>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="usergivenname" value="a"
                            data-th-field="*{user.givenname}"
@@ -59,7 +61,7 @@
                     <div id="usergivennamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="usersurname" value="a"
                            data-th-field="*{user.surname}"
@@ -71,7 +73,7 @@
         </div>
         <!-- neue Zeile -->
         <div class="row g-2 mb-3">
-            <div class="col-2">
+            <div class="col-6 col-md-2">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="usergebdatum" value="a"
                            data-th-field="*{user.birthdate}"
@@ -80,7 +82,7 @@
                     <div id="userbirthdatefeedback" class="invalid-feedback ms-2">Pflichtfeld! Format: YYYY-MM-DD</div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="usergebort" value="a"
                            data-th-field="*{user.placeOfBirth}"
@@ -89,7 +91,7 @@
                     <div id="usergebortfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="usergebname" value=""
                            data-th-field="*{user.birthName}"
@@ -101,7 +103,7 @@
         </div>
         <!-- neue Zeile -->
         <div class="row g-2 mb-3">
-            <div class="col-5">
+            <div class="col-12 col-md-5">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="userpostaladdress" value="a"
                            data-th-field="*{user.postalAddress}"
@@ -110,16 +112,16 @@
                     <div id="userpostaladdressfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-6 col-md-2">
                 <div class="form-floating">
-                    <input type="text" class="form-control" id="userpostalcode" value="a"
+                    <input type="text" inputmode="numeric" class="form-control" id="userpostalcode" value="a"
                            data-th-field="*{user.postalCode}"
                            data-th-classappend="${#fields.hasErrors('user.postalCode')} ? 'is-invalid' : ''">
                     <label for="userpostalcode">Plz:</label>
                     <div id="userpostalcodefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="userlocalityname" value="a"
                            data-th-field="*{user.localityName}"
@@ -128,7 +130,7 @@
                     <div id="userlocalitynamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
                 </div>
             </div>
-            <div class="col-1">
+            <div class="col-6 col-md-1">
                 <div class="form-floating">
                     <select class="form-select" id="usercountry" data-th-field="*{user.country}">
                         <option value=""></option>
@@ -151,7 +153,7 @@
         </div>
 
         <div class="row g-2 mb-3">
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="form-floating">
                     <select class="form-select" id="identWith" th:field="*{identifikationWith}">
                         identWithList
@@ -160,7 +162,7 @@
                     <label for="identWith">Identifizierung mit::</label>
                 </div>
             </div>
-            <div class="col-2 offset-1">
+            <div class="col-6 col-md-2 offset-md-1">
                 <div class="form-floating">
                     <select class="form-select" id="eidasCountry" data-th-field="*{eidasCountry}"
                             data-th-classappend="${#fields.hasErrors('eidasCountry')} ? 'is-invalid' : ''">
@@ -177,7 +179,7 @@
                     <div id="eidasCountryFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="form-floating">
                     <select class="form-select" id="eidasLoa" data-th-field="*{eidasLoa}"
                             data-th-classappend="${#fields.hasErrors('eidasLoa')} ? 'is-invalid' : ''">
@@ -190,7 +192,7 @@
                     <div id="eidasLoaFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <p class="mt-2 text-muted">
                     Land und Vertrauensniveau nur auswählen, wenn Identififizierung mit Eidas.
                 </p>
@@ -198,7 +200,7 @@
         </div>
         <!-- neue Zeile -->
         <div class="row g-2 mb-3">
-            <div class="col-3">
+            <div class="col-12 col-md-3">
                 <div class="form-floating">
                     <select class="form-select" id="status" data-th-field="*{status}">
                         <option value="OK" selected>Erfolgreich</option>
@@ -210,10 +212,10 @@
             </div>
         </div>
         <!-- neue Zeile -->
-        <div class="row g-2 mb-3">
-            <div class="col-12">
-                <button type="submit" id="applyPerson" class="btn btn-primary" style="width:15rem;">Person übernehmen</button>
-                <button type="cancel" th:formaction="@{__${basepath}__/edit/cancel}" class="btn btn-secondary ms-3" style="width:15rem;">Abbrechen</button>
+        <div class="bpsim-aktionen my-4">
+            <div class="d-grid gap-2 d-md-flex">
+                <button type="submit" id="applyPerson" class="btn btn-primary bpsim-knopf">Person übernehmen</button>
+                <button type="cancel" th:formaction="@{__${basepath}__/edit/cancel}" class="btn btn-secondary bpsim-knopf">Abbrechen</button>
             </div>
         </div>
 
