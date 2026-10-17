@@ -24,7 +24,9 @@ logging:
 spring:
   application:
     name: "bundid-simulator"
-    version: "latest"
+    # Fork bpsim/standardkonform: Version aus dem Maven-Build (Resource-Filtering von spring-boot-starter-parent)
+    # statt "latest"; Anzeige in der Fußzeile. Umgebung (app.env) setzt der Betrieb per APP_ENV.
+    version: "@project.version@ (Fork bpsim/standardkonform)"
   threads:
     virtual:
       enabled: true
