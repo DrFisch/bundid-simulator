@@ -36,7 +36,7 @@ Seit 2026-10-07 hat der Fork zusätzlich ein abschaltbares **Postfach** als Teil
 | `app.postfach.enabled` | `APP_POSTFACH_ENABLED` | `false` | Postfach: Oberfläche `/postfach` und Einlieferung `POST /api/v1/messages`; sonst 404. Braucht `app.sso.enabled=true` (die Anmeldung am Postfach ist die Anmeldesitzung der BundID) |
 | `app.postfach.api-key` | `APP_POSTFACH_APIKEY` | leer | Schlüssel einliefernder Dienste im Header `X-Api-Key` (Vergleich in konstanter Zeit); leer = Einlieferung gesperrt |
 | `app.postfach.storage-dir` | `APP_POSTFACH_STORAGEDIR` | `/app/data/postfach` | eine JSON-Datei je Postkorb-Handle (im Container im Daten-Volume) |
-| `app.postfach.portal-url` / `-name` | `APP_POSTFACH_PORTALURL` / `APP_POSTFACH_PORTALNAME` | leer | optionaler Knopf „← Zurück zum <Name>“ in der Kopfzeile und unter der Liste |
+| `app.postfach.portal-url` / `-name` | `APP_POSTFACH_PORTALURL` / `APP_POSTFACH_PORTALNAME` | leer | optionaler Knopf „← Zurück zum <Name>“ in der Kopfzeile (auf dem Handy nur der Pfeil) |
 
 Neuer Endpunkt: `GET /saml/metadata` – IdP-Metadaten (EntityID, Signaturzertifikat, SSO-Endpunkt mit
 HTTP-POST-Binding); nur wenn `idp-entity-id` und `sso-url` gesetzt sind, sonst 404.
@@ -72,6 +72,18 @@ Simulator wie bisher die Auswahl.
 - Auto-POST der SAML-Response (`auth_response.html`) ohne Inline-Skript und ohne `onload`-Attribut: Das Skript liegt
   in `static/js/auth-response.js`. Damit kann ein Reverse Proxy eine Content-Security-Policy mit `script-src 'self'`
   (ohne `'unsafe-inline'`) setzen. Verhalten unverändert.
+- Oberfläche für Handys (2026-10-17): `viewport` und Zeichensatz im gemeinsamen Kopf (`fragments/snippets.html`; vorher
+  zeigten Handys die Personenauswahl 980 px breit und verkleinert). Personenauswahl (`select_view.html`): Raster mit
+  1/2/3 Spalten je nach Breite, ganze Personenkarte antippbar (`stretched-link`), große Auswahlpunkte, gewählte Person
+  hervorgehoben, Felder untereinander, „Person übernehmen“/„Abbrechen“ auf dem Handy in voller Breite am unteren Rand.
+  „Personendaten bearbeiten“ (`edit_view.html`) ebenso. Seitensprache `de`. IDs der Felder unverändert. CSS in
+  `static/css/layout.css`.
+- Postfach: Kopfzeile einzeilig (Zurück zum Dienst, Titel, Konto-Menü mit Name, Niveau und Abmelden über
+  `details`/`summary` – ohne Skript), Nachrichten als Karten mit Punkt für ungelesen; der zweite „Zurück“-Knopf unter
+  der Liste entfällt.
+- Fußzeile: Version aus dem Maven-Build (`@project.version@` per Resource-Filtering, z. B. `1.1.6-SNAPSHOT (Fork
+  bpsim/standardkonform)`) statt `latest`. „Umgebung: …“ in der Kopfzeile kommt wie im Original aus `app.env`
+  (`APP_ENV`, Standard `localDEV`); das BürgerPortal setzt „Simulation (Studienprojekt)“.
 
 ## Tests
 
