@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Sprache de, Personenauswahl für das Handy
-     (Raster je Bildschirmbreite, ganze Karte antippbar, Felder untereinander, Knöpfe unten fest). -->
+     (Raster je Bildschirmbreite, ganze Karte antippbar, Felder untereinander, Knöpfe unten fest), Schnellanmeldung
+     mit John Doe (Karte oben, Bestätigung im Dialog, POST /select/schnell). -->
 <html lang="de">
 <head data-th-insert="~{fragments/snippets :: head}">
     <title>Eid-BundID-IdpMock</title>
@@ -8,9 +9,27 @@
 <body>
     <nav data-th-replace="~{fragments/snippets :: navbar}"></nav>
     <div class="container">
+        <!-- Fork: Schnellanmeldung – ein Klick, bestätigen, weiter (Person, Mittel und Kontext legt der Simulator fest) -->
+        <div class="card bpsim-schnell mb-4" data-th-if="${schnellPerson}">
+            <div class="card-body d-flex flex-column flex-md-row align-items-md-center gap-3">
+                <div class="flex-grow-1">
+                    <h1 class="h4 mb-1">Schnelle Anmeldung</h1>
+                    <p class="mb-0 text-muted">
+                        Mit der fiktiven Testperson
+                        <b data-th-text="${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">John Doe</b>
+                        aus <span data-th-text="${schnellPerson.localityName}">Hof</span> (Bayern) – anklicken, bestätigen,
+                        weiter. Identifizierung: <span data-th-text="${schnellIdent}">Benutzername</span>, Vertrauensniveau
+                        „<span data-th-text="${schnellNiveau}">normal</span>“.
+                    </p>
+                </div>
+                <button type="button" class="btn btn-success btn-lg bpsim-knopf text-nowrap" id="schnellAnmelden"
+                        data-bs-toggle="modal" data-bs-target="#schnellModal"
+                        data-th-text="'Anmelden als ' + ${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">Anmelden als John Doe</button>
+            </div>
+        </div>
         <form action="#" data-th-action="@{__${basepath}__/select/submit}" method="post" data-th-object="${formdata}">
             <div class="row">
-                <h1>Personen</h1>
+                <h2 class="h1">Oder eine Person wählen</h2>
             </div>
             <!-- Fork bpsim/standardkonform: Hinweis auf eine bestehende Anmeldesitzung (SSO) -->
             <div class="alert alert-info" data-th-if="${ssoInfo}">
@@ -130,6 +149,41 @@
             </div>
             <input type="hidden" data-th-field="*{samlRequest}" name="request"/>
         </form>
+
+        <!-- Fork: Bestätigung der Schnellanmeldung (Bootstrap-Dialog, Skript als Datei – CSP script-src 'self') -->
+        <div class="modal fade" id="schnellModal" tabindex="-1" aria-labelledby="schnellTitel" aria-hidden="true"
+             data-th-if="${schnellPerson}">
+            <div class="modal-dialog modal-dialog-centered">
+                <form class="modal-content" method="post" action="#" data-th-action="@{__${basepath}__/select/schnell}">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="schnellTitel"
+                            data-th-text="'Als ' + ${schnellPerson.givenname} + ' ' + ${schnellPerson.surname} + ' anmelden?'">Als John Doe anmelden?</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Die BundID-Simulation meldet Sie mit dieser fiktiven Person an und schickt dem Dienst eine
+                            signierte SAML-Response mit diesen Angaben:</p>
+                        <dl class="row small mb-2">
+                            <dt class="col-5">Name</dt>
+                            <dd class="col-7" data-th-text="${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">John Doe</dd>
+                            <dt class="col-5">Anschrift</dt>
+                            <dd class="col-7" data-th-text="${schnellPerson.postalAddress} + ', ' + ${schnellPerson.postalCode} + ' ' + ${schnellPerson.localityName}">Musterstraße 1, 95028 Hof</dd>
+                            <dt class="col-5">Geboren</dt>
+                            <dd class="col-7" data-th-text="${templateTools.formatDate(schnellPerson.birthdate)} + ' in ' + ${schnellPerson.placeOfBirth}">01.04.1990 in München</dd>
+                            <dt class="col-5">Identifizierung</dt>
+                            <dd class="col-7" data-th-text="${schnellIdent} + ' (Niveau ' + ${schnellNiveau} + ')'">Benutzername (Niveau normal)</dd>
+                        </dl>
+                        <p class="small text-muted mb-0">Auf diesem Gerät bleibt es dasselbe Demo-Konto (Termine und Postfach
+                            bleiben erhalten); andere Geräte bekommen ein eigenes. Alle Angaben sind fiktiv.</p>
+                    </div>
+                    <input type="hidden" name="samlRequest" data-th-value="${formdata.samlRequest}"/>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                        <button type="submit" class="btn btn-success" id="schnellBestaetigen">Bestätigen und anmelden</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <footer data-th-replace="~{fragments/snippets :: footer}"></footer>
 </body>
