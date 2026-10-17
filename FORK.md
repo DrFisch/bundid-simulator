@@ -57,6 +57,14 @@ Neue Endpunkte des Postfachs (nur mit `app.postfach.enabled=true`):
   `/api`).
 
 Neue Endpunkte der Anmeldesitzung: `GET /sso` zeigt die bestehende Sitzung, `GET /sso/logout` beendet sie.
+
+Schnellanmeldung (2026-10-17, immer aktiv): Die Auswahlseite zeigt oben die Karte „Schnelle Anmeldung“ mit der
+fiktiven Person **John Doe** (`users.yml`, Id `U20`, Hof in Bayern). Ein Klick und eine Bestätigung im Dialog schicken
+`POST /select/schnell`: Identifizierungsmittel ist das erste, das für das geforderte Niveau zugelassen ist (normal:
+Benutzername, substanziell: Elster, hoch: Online-Ausweis), der fachliche Kontext ist `-jd` plus eine zufällige
+Kennung je Gerät (Cookie `BUNDIDSIM_SCHNELL`, ein Jahr) – auf einem Gerät bleibt es dasselbe Demo-Konto, verschiedene
+Geräte teilen sich keins. Danach wie „Person übernehmen“ (Anmeldesitzung, signierte Response). Die normale Auswahl
+steht darunter unverändert (IDs gleich). Logik in `utils/SchnellAnmeldungTools` (Test `SchnellAnmeldungToolsTest`).
 Die Sitzung gilt nur, wenn der Browser das Cookie mitsendet: bei Diensten unter derselben Website (z. B.
 `*.example.de`) bzw. lokal unter `localhost`; bei Cross-Site-POSTs von fremden Websites (SameSite=Lax) zeigt der
 Simulator wie bisher die Auswahl.
@@ -90,7 +98,7 @@ Simulator wie bisher die Auswahl.
 Die `.dockerignore` des Originalprojekts schließt `src/test` vom Image-Build aus (dort: „No tests to run“). Tests
 deshalb separat, z. B.:
 `docker run --rm -v "$PWD":/app -v bpsim-maven-repo:/root/.m2 -w /app maven:3.9.16-eclipse-temurin-25 mvn -q test`
-(Berichte unter `target/surefire-reports`; Stand: 29 Tests grün).
+(Berichte unter `target/surefire-reports`; Stand: 32 Tests grün).
 
 ## Annahmen
 
