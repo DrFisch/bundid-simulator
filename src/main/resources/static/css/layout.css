@@ -130,7 +130,8 @@ body > .container {
     max-width: 100%;
     padding: .25rem .7rem;
     border: 1px solid var(--bpsim-rand);
-    border-radius: 999px;
+    /* kein Pillen-Radius: der Issuer (lange URL) bricht auf dem Handy um, dann waere es ein schiefes Oval */
+    border-radius: .75rem;
     background-color: #fff;
 }
 
