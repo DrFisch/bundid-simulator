@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Anmeldung am BundID-Konto für das Postfach. -->
+<!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Anmeldung am BundID-Konto für das Postfach. Seit
+     2026-10-18 wie die Personenauswahl: Schnellanmeldung mit John Doe (POST /postfach/schnell) oder Testperson wählen
+     (kompakte Karten, Mittel mit Niveau, Kontext je Gerät unter „Erweitert“); Knopf nennt die gewählte Person.
+     Felder und IDs wie bisher (#postfachAnmelden, #identifikationWith, #domainContext, person_N). -->
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head data-th-replace="~{postfach/rahmen :: head('Anmelden')}"></head>
 <body>
 <nav data-th-replace="~{postfach/rahmen :: nav}"></nav>
-<main class="container pb-4" style="max-width: 900px;">
-    <h1 class="h4">Anmelden am BundID-Konto</h1>
-    <p class="text-muted">
-        Wählen Sie eine Testperson. Wer gerade bei einem Dienst mit der BundID angemeldet ist, sieht sein Postfach ohne
-        diese Auswahl (Anmeldesitzung).
-    </p>
+<main class="container bpsim-seite" style="max-width: 960px;">
+    <header class="mb-3">
+        <h1 class="h3 mb-1">Anmelden am BundID-Konto</h1>
+        <p class="text-muted mb-0">Ihr Postfach gehört zum BundID-Konto. Wer gerade bei einem Dienst mit der BundID
+            angemeldet ist, kommt ohne diese Seite hinein (Anmeldesitzung).</p>
+    </header>
 
     <div class="alert alert-success" data-th-if="${abgemeldet}">Sie sind abgemeldet. Die Anmeldesitzung der BundID ist beendet.</div>
     <div class="alert alert-danger" data-th-if="${ssoAus}">
@@ -20,41 +23,110 @@
         Höheres Niveau nötig.
     </div>
 
-    <form method="post" data-th-action="@{__${basepath}__/postfach/anmelden}" class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-            <fieldset class="mb-3">
-                <legend class="h6">Person</legend>
-                <div class="row row-cols-1 row-cols-md-2 g-2">
-                    <div class="col" data-th-each="user, iterStat : ${userlist}">
-                        <div class="form-check border rounded p-2 ps-5 h-100 bg-white">
+    <h2 class="bpsim-frage">Wie möchten Sie sich anmelden?</h2>
+
+    <!-- Weg 1: Schnellanmeldung – dasselbe Demo-Konto wie bei der Schnellanmeldung an einem Dienst -->
+    <form class="card bpsim-schnell" method="post" data-th-action="@{__${basepath}__/postfach/schnell}"
+          data-th-if="${schnellPerson}" aria-labelledby="schnellKarteTitel">
+        <div class="card-body d-flex flex-column flex-md-row align-items-md-center gap-3">
+            <div class="flex-grow-1">
+                <h3 class="h5 mb-1" id="schnellKarteTitel">
+                    <svg class="bpsim-symbol" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="currentColor"/>
+                    </svg>
+                    Schnellanmeldung
+                </h3>
+                <p class="mb-1">Als fiktive Person
+                    <b data-th-text="${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">John Doe</b> – dasselbe
+                    Demo-Konto wie bei „Anmelden als John Doe“ im Dienst.</p>
+                <p class="small text-muted mb-0">Identifizierung: <span data-th-text="${schnellIdent}">Benutzername</span>
+                    · Niveau „<span data-th-text="${schnellNiveau}">normal</span>“ · eigenes Demo-Konto je Gerät</p>
+            </div>
+            <input type="hidden" name="niveau" data-th-if="${niveau}" data-th-value="${niveau}">
+            <input type="hidden" name="ziel" data-th-value="${ziel}">
+            <button type="submit" id="postfachSchnell" class="btn btn-success btn-lg bpsim-knopf text-nowrap"
+                    data-th-text="'Anmelden als ' + ${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">Anmelden als John Doe</button>
+        </div>
+    </form>
+
+    <div class="bpsim-oder" aria-hidden="true"><span>oder</span></div>
+
+    <!-- Weg 2: Testperson wählen -->
+    <form id="postfachForm" class="bpsim-weg bpsim-auswahl" method="post" data-bpsim-auswahl
+          data-th-action="@{__${basepath}__/postfach/anmelden}" aria-labelledby="testpersonTitel">
+        <h3 class="h5 mb-1" id="testpersonTitel">Testperson wählen</h3>
+        <p class="small text-muted">Gleiche Person und gleicher fachlicher Kontext wie bei der Anmeldung am Dienst =
+            dasselbe Postfach.</p>
+
+        <fieldset class="mb-2">
+            <legend class="bpsim-schritt"><span class="bpsim-nr" aria-hidden="true">1</span> Person</legend>
+            <div class="row row-cols-1 row-cols-md-2 g-2 align-items-start">
+                <div class="col" data-th-each="user, iterStat : ${userlist}">
+                    <div class="card bpsim-person">
+                        <div class="form-check">
                             <input class="form-check-input" type="radio" name="userId" data-th-id="'person_' + ${iterStat.count}"
-                                   data-th-value="${user.id}" data-th-checked="${user.id == userId}">
-                            <label class="form-check-label small" data-th-for="'person_' + ${iterStat.count}">
-                                <span class="fw-bold" data-th-text="${user.givenname} + ' ' + ${user.surname}">Name</span><br>
-                                <span class="text-muted" data-th-text="${user.localityName}">Ort</span>
-                                · bPK2 <code data-th-text="${user.bpk2}">bpk2</code>
+                                   data-th-value="${user.id}" data-th-checked="${user.id == userId}"
+                                   data-th-attr="data-name=${user.givenname + ' ' + user.surname}">
+                            <label class="form-check-label stretched-link" data-th-for="'person_' + ${iterStat.count}">
+                                <span class="bpsim-person-name" data-th-text="${user.givenname} + ' ' + ${user.surname}">Maria Neumann</span>
+                                <span class="bpsim-person-kurz">
+                                    <span data-th-text="${user.localityName != null ? user.localityName + (user.country != null and user.country != 'DE' ? ' (' + user.country + ')' : '') : 'ohne Anschrift (Ausland)'}">Berlin</span>
+                                    <span data-th-if="${user.birthdate != null and #strings.length(user.birthdate) >= 4}"
+                                          data-th-text="'· Jahrgang ' + ${#strings.substring(user.birthdate, 0, 4)}">· Jahrgang 1964</span>
+                                </span>
+                                <span class="bpsim-person-details">bPK2 <code class="text-break" data-th-text="${user.bpk2}">BUNDIDSIM-U01</code>
+                                    <span class="text-muted">+ Kontext</span></span>
                             </label>
                         </div>
                     </div>
                 </div>
-            </fieldset>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" for="identifikationWith">Identifizierung mit</label>
-                    <select class="form-select" id="identifikationWith" name="identifikationWith">
-                        <option data-th-each="item : ${identWithList}" data-th-value="${item[0]}" data-th-text="${item[1]}"
-                                data-th-selected="${item[0] == identification}">eID</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="domainContext">Fachlicher Kontext (optional)</label>
-                    <input class="form-control" id="domainContext" name="domainContext" data-th-value="${domainContext}">
-                    <div class="form-text">Wie in der Personenauswahl des Simulators: gleicher Kontext = gleiche bPK2 = gleiches Postfach.</div>
-                </div>
             </div>
-            <input type="hidden" name="niveau" data-th-if="${niveau}" data-th-value="${niveau}">
-            <input type="hidden" name="ziel" data-th-value="${ziel}">
-            <button type="submit" id="postfachAnmelden" class="btn btn-primary">Anmelden</button>
+        </fieldset>
+
+        <div class="row g-3 mb-2">
+            <div class="col-12 col-md-6">
+                <fieldset>
+                    <legend class="bpsim-schritt"><span class="bpsim-nr" aria-hidden="true">2</span> Identifizierung</legend>
+                    <div class="form-floating">
+                        <select class="form-select" id="identifikationWith" name="identifikationWith">
+                            <option data-th-each="item : ${identWithList}" data-th-value="${item[0]}"
+                                    data-th-text="${item[1]} + ' – Niveau ' + ${mittelNiveau[item[0]]}"
+                                    data-th-selected="${item[0] == identification}">EID (Ausweis) – Niveau hoch</option>
+                        </select>
+                        <label for="identifikationWith">Identifizierungsmittel</label>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-12 col-md-6">
+                <fieldset>
+                    <legend class="bpsim-schritt"><span class="bpsim-nr" aria-hidden="true">3</span> Erweitert
+                        <span class="fw-normal text-muted small">(optional)</span></legend>
+                    <details class="bpsim-erweitert">
+                        <summary><span>Kontext <code data-bpsim-kontext data-th-text="${domainContext}">-k4m2x9q7</code></span></summary>
+                        <div class="pt-2">
+                            <div class="form-floating">
+                                <input class="form-control" id="domainContext" name="domainContext" autocapitalize="off"
+                                       spellcheck="false" autocomplete="off" data-th-value="${domainContext}"
+                                       aria-describedby="domainContextHilfe">
+                                <label for="domainContext">Fachlicher Kontext</label>
+                            </div>
+                            <p class="form-text mb-0" id="domainContextHilfe">Wie in der Personenauswahl: gleicher Kontext =
+                                gleiche bPK2 = gleiches Postfach. Vorbelegt mit der Kennung dieses Geräts.</p>
+                        </div>
+                    </details>
+                </fieldset>
+            </div>
+        </div>
+
+        <input type="hidden" name="niveau" data-th-if="${niveau}" data-th-value="${niveau}">
+        <input type="hidden" name="ziel" data-th-value="${ziel}">
+        <div class="bpsim-aktionen">
+            <button type="submit" id="postfachAnmelden" class="btn btn-primary btn-lg bpsim-knopf">
+                <span class="bpsim-ohne-js">Mit der gewählten Person anmelden</span>
+                <span class="bpsim-mit-js" data-bpsim-status="OK">Als <span data-bpsim-name><th:block
+                        th:each="u : ${userlist}" th:if="${u.id == userId}"
+                        th:text="${u.givenname + ' ' + u.surname}">Maria Neumann</th:block></span> anmelden</span>
+            </button>
         </div>
     </form>
 </main>

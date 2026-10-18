@@ -6,6 +6,9 @@ package de.ba.oiam.bundidsim.postfach;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PostfachControllerTest {
@@ -18,6 +21,19 @@ class PostfachControllerTest {
         assertThat(PostfachController.sicheresZiel("//boese.example/postfach")).isEqualTo("/postfach");
         assertThat(PostfachController.sicheresZiel("/postfach/../saml")).isEqualTo("/postfach");
         assertThat(PostfachController.sicheresZiel(null)).isEqualTo("/postfach");
+    }
+
+    @Test
+    void offersNoEidasBecauseTheAccountLoginHasNoCountryOrLoaFields() {
+        assertThat(schluessel(PostfachController.mittel(AuthLevelTools.STORK_1)))
+                .contains(AuthLevelTools.IDENTIFICATION_BENUTZERKENNUNG, AuthLevelTools.IDENTIFICATION_EID)
+                .doesNotContain(AuthLevelTools.IDENTIFICATION_EIDAS);
+        assertThat(schluessel(PostfachController.mittel(AuthLevelTools.STORK_3)))
+                .doesNotContain(AuthLevelTools.IDENTIFICATION_BENUTZERKENNUNG, AuthLevelTools.IDENTIFICATION_EIDAS);
+    }
+
+    private static List<String> schluessel(String[][] mittel) {
+        return Arrays.stream(mittel).map(item -> item[0]).toList();
     }
 
     @Test

@@ -3,13 +3,16 @@
  */
 package de.ba.oiam.bundidsim.postfach;
 
+import de.ba.oiam.bundidsim.controller.AuswahlSeite;
 import de.ba.oiam.bundidsim.model.BundIdUser;
 import de.ba.oiam.bundidsim.services.SsoSessionService;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.PersonTools;
 import de.ba.oiam.bundidsim.utils.PostkorbHandleTools;
+import de.ba.oiam.bundidsim.utils.SchnellAnmeldungTools;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.Value;
@@ -37,6 +40,7 @@ import java.util.Optional;
  * oder direkt hier über die Personenauswahl. Angezeigt werden die Nachrichten an das Postkorb-Handle dieser Person
  * (bPK2 inkl. fachlichem Kontext). Das Handle kommt nur aus der Sitzung, nie aus der URL.
  * Nachrichten mit höherem Vertrauensniveau als die Sitzung sind erst nach erneuter Anmeldung lesbar (Step-up).
+ * Seit 2026-10-18: Anmeldung wie die Personenauswahl (Kontext je Gerät, Schnellanmeldung mit John Doe).
  */
 @Controller
 @Slf4j
@@ -140,19 +144,25 @@ public class PostfachController {
     /** Anmeldung am BundID-Konto (Personenauswahl wie im Simulator); niveau/ziel für den Step-up einer Nachricht. */
     @GetMapping(path = "/postfach/anmelden")
     public String anmelden(@RequestParam(required = false) Integer niveau, @RequestParam(required = false) String ziel,
-                           @RequestParam(required = false) String abgemeldet, Model model, HttpServletRequest request) {
+                           @RequestParam(required = false) String abgemeldet, Model model, HttpServletRequest request,
+                           HttpServletResponse response) {
         ensureEnabled();
         String minLevel = storkLevel(niveau);
-        String[][] identWithList = AuthLevelTools.createIdentificationWithList(minLevel);
+        String[][] identWithList = mittel(minLevel);
         List<BundIdUser> users = userService.getUserList();
         String userId = users.getFirst().getId();
-        String domainContext = "";
+        // wie in der Personenauswahl: Kontext je Gerät vorbelegt – gleiche Person + gleiches Gerät = gleiches Postfach
+        String domainContext = SchnellAnmeldungTools.auswahlKontext(SchnellAnmeldungTools.geraeteKennung(request, response));
         String identification = AuthLevelTools.IDENTIFICATION_EID;
         // Bestehende Sitzung (Step-up): Person und fachlichen Kontext vorbelegen
         Optional<SsoSessionService.SsoState> sso = ssoSessionService.find(request);
         if (sso.isPresent()) {
-            userId = sso.get().userId();
-            domainContext = sso.get().domainContext() == null ? "" : sso.get().domainContext();
+            if (sso.get().userId() != null) {
+                userId = sso.get().userId();
+            }
+            if (StringUtils.hasText(sso.get().domainContext())) {
+                domainContext = sso.get().domainContext();
+            }
             String current = sso.get().identification();
             if (Arrays.stream(identWithList).anyMatch(item -> item[0].equals(current))) {
                 identification = current;
@@ -160,6 +170,8 @@ public class PostfachController {
         }
         model.addAttribute("userlist", users);
         model.addAttribute("identWithList", identWithList);
+        model.addAttribute("mittelNiveau", AuswahlSeite.niveauJeMittel(identWithList));
+        AuswahlSeite.schnellanmeldung(model, userService, minLevel);
         model.addAttribute("userId", userId);
         model.addAttribute("domainContext", domainContext);
         model.addAttribute("identification", identification);
@@ -178,7 +190,7 @@ public class PostfachController {
                                    @RequestParam(required = false) String ziel, HttpServletRequest request) {
         ensureEnabled();
         BundIdUser user = userService.getUserById(userId);
-        String[][] erlaubt = AuthLevelTools.createIdentificationWithList(storkLevel(niveau));
+        String[][] erlaubt = mittel(storkLevel(niveau));
         if (user == null || Arrays.stream(erlaubt).noneMatch(item -> item[0].equals(identifikationWith))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Person oder Identifizierungsmittel ungültig");
         }
@@ -186,6 +198,24 @@ public class PostfachController {
         PersonTools.applySelection(user, identifikationWith, null, null, kontext);
         ssoSessionService.remember(request, user, userId, kontext);
         log.debug("Postfach: Anmeldung als [{}] mit [{}]", userId, identifikationWith);
+        return "redirect:" + basePath + sicheresZiel(ziel);
+    }
+
+    /**
+     * Schnellanmeldung am BundID-Konto mit John Doe (seit 2026-10-18): Mittel passend zum Niveau einer gesperrten
+     * Nachricht, fachlicher Kontext je Gerät – dasselbe Konto wie bei der Schnellanmeldung an einem Dienst.
+     */
+    @PostMapping(path = "/postfach/schnell")
+    public String schnellAnmelden(@RequestParam(required = false) Integer niveau,
+                                  @RequestParam(required = false) String ziel,
+                                  HttpServletRequest request, HttpServletResponse response) {
+        ensureEnabled();
+        String identification = SchnellAnmeldungTools.identifikation(storkLevel(niveau))[0];
+        String kontext = SchnellAnmeldungTools.kontext(SchnellAnmeldungTools.geraeteKennung(request, response));
+        BundIdUser user = PersonTools.applySelection(userService.getUserById(SchnellAnmeldungTools.USER_ID),
+                identification, null, null, kontext);
+        ssoSessionService.remember(request, user, SchnellAnmeldungTools.USER_ID, kontext);
+        log.debug("Postfach: Schnellanmeldung mit [{}]", identification);
         return "redirect:" + basePath + sicheresZiel(ziel);
     }
 
@@ -212,6 +242,16 @@ public class PostfachController {
     /** Rücksprung nur innerhalb des Postfachs (kein offener Redirect). */
     static String sicheresZiel(String ziel) {
         return ziel != null && ziel.matches("/postfach(/nachricht/[A-Za-z0-9-]{1,64})?") ? ziel : "/postfach";
+    }
+
+    /**
+     * Identifizierungsmittel für die Anmeldung am Konto: wie in der Personenauswahl, aber ohne eIDAS – hier gibt es
+     * keine Felder für Land und eIDAS-Niveau (vorher endete die Wahl von eIDAS mit einem Fehler 500).
+     */
+    static String[][] mittel(String minLevel) {
+        return Arrays.stream(AuthLevelTools.createIdentificationWithList(minLevel))
+                .filter(item -> !AuthLevelTools.IDENTIFICATION_EIDAS.equals(item[0]))
+                .toArray(String[][]::new);
     }
 
     static String storkLevel(Integer niveau) {

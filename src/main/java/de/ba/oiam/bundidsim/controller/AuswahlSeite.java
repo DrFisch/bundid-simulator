@@ -49,7 +49,7 @@ public final class AuswahlSeite {
     }
 
     /** Identifizierungsmittel → Niveau, wie die BundID es nennt; bei eIDAS hängt es vom gewählten LoA ab. */
-    static Map<String, String> niveauJeMittel(String[][] list) {
+    public static Map<String, String> niveauJeMittel(String[][] list) {
         Map<String, String> map = new LinkedHashMap<>();
         for (String[] item : list) {
             map.put(item[0], AuthLevelTools.IDENTIFICATION_EIDAS.equals(item[0])
