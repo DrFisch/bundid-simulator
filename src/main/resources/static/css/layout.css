@@ -88,26 +88,158 @@ body > .container {
     }
 }
 
-/* Fork bpsim/standardkonform: mobile Darstellung (Personenauswahl, Bearbeiten) */
+
+/* ---------------------------------------------------------------------------------------------------------------
+   Seiten mit Personenauswahl (Auswahl, Angaben aendern, Anmeldung am Postfach) - 2026-10-18
+   --------------------------------------------------------------------------------------------------------------- */
+
+.bpsim-seite code {
+    color: #a61e4d;     /* dunkler als Bootstrap-Pink: Kontrast auch auf hellen Flaechen */
+}
+
+.bpsim-link {
+    color: #0a58ca;
+    min-height: 2.75rem;
+    text-underline-offset: .2em;
+}
+
+/* Anfrage des Dienstes als Chips */
+.bpsim-anfrage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    font-size: .875rem;
+}
+
+.bpsim-anfrage li {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: .35rem;
+    max-width: 100%;
+    padding: .25rem .7rem;
+    border: 1px solid var(--bpsim-rand);
+    border-radius: 999px;
+    background-color: #fff;
+}
+
+.bpsim-frage {
+    margin: 1.25rem 0 .75rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+/* Weg 1: Schnellanmeldung */
+.bpsim-schnell {
+    border: 2px solid var(--bpsim-gruen);
+    border-radius: var(--bpsim-radius);
+    background: linear-gradient(135deg, #e8f5ee 0%, #ffffff 70%);
+}
+
+.bpsim-symbol {
+    width: 1.1em;
+    height: 1.1em;
+    margin-top: -.15em;
+    color: var(--bpsim-gruen);
+}
+
+/* Trenner "oder" */
+.bpsim-oder {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 1rem 0;
+    color: var(--bpsim-text-leise);
+    font-size: .875rem;
+}
+
+.bpsim-oder::before,
+.bpsim-oder::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--bpsim-rand);
+}
+
+/* Weg 2: Testperson waehlen - weisser Kasten, der Knopf gehoert sichtbar dazu */
+.bpsim-weg {
+    padding: 1rem .85rem 0;
+    border: 1px solid var(--bpsim-rand);
+    border-radius: var(--bpsim-radius);
+    background-color: #fff;
+}
+
+.bpsim-schritt {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .6rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.bpsim-nr {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background-color: var(--bpsim-kopf);
+    color: #fff;
+    font-size: .85rem;
+}
+
+/* Personenkarten: kompakt (Name, Ort, Jahrgang); Einzelheiten nur bei der gewaehlten Person */
+.bpsim-person {
+    border-radius: .7rem;
+    transition: border-color .15s, box-shadow .15s;
+}
+
 .bpsim-person .form-check {
-    padding: .75rem .75rem .75rem 2.6rem;
+    min-height: 3.5rem;
     margin: 0;
+    padding: .7rem .8rem .7rem 2.75rem;
 }
 
 .bpsim-person .form-check-input {
-    width: 1.4em;
-    height: 1.4em;
-    margin-left: -1.9rem;
-    margin-top: .05em;
+    width: 1.35em;
+    height: 1.35em;
+    margin-left: -1.95rem;
+    margin-top: .1em;
     /* ueber dem Ueberzug der Karte (stretched-link, z-index 1): der Punkt selbst bleibt direkt anklickbar */
     position: relative;
     z-index: 2;
 }
 
-/* ausgewaehlte Person hervorheben; Fokus der Tastatur auf der ganzen Karte zeigen */
+.bpsim-person-name {
+    display: block;
+    font-weight: 600;
+}
+
+.bpsim-person-kurz {
+    display: block;
+    color: var(--bpsim-text-leise);
+    font-size: .875rem;
+}
+
+.bpsim-person-details {
+    display: block;
+    margin-top: .45rem;
+    padding-top: .45rem;
+    border-top: 1px dashed var(--bpsim-rand);
+    font-size: .875rem;
+}
+
+/* ohne :has bleiben die Einzelheiten einfach sichtbar */
+.bpsim-person:not(:has(.form-check-input:checked)) .bpsim-person-details {
+    display: none;
+}
+
 .bpsim-person:has(.form-check-input:checked) {
     border-color: var(--bpsim-akzent);
-    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .25);
+    background-color: var(--bpsim-akzent-hell);
+    box-shadow: 0 0 0 .15rem rgba(13, 110, 253, .25);
 }
 
 .bpsim-person:has(.form-check-input:focus-visible) {
@@ -115,29 +247,99 @@ body > .container {
     outline-offset: 2px;
 }
 
+/* eIDAS-Land/-Niveau nur, wenn eIDAS gewaehlt ist (ohne :has immer sichtbar) */
+.bpsim-auswahl:not(:has(select[name=identifikationWith] option[value="eIDAS"]:checked)) .bpsim-eidas {
+    display: none;
+}
+
+/* "Erweitert" zum Aufklappen; die Zeile zeigt Status und Kontext */
+.bpsim-erweitert {
+    border: 1px solid var(--bpsim-rand);
+    border-radius: .6rem;
+    background-color: #fff;
+}
+
+.bpsim-erweitert > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    min-height: 3.5rem;
+    padding: .5rem .9rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.bpsim-erweitert > summary::-webkit-details-marker {
+    display: none;
+}
+
+.bpsim-erweitert > summary::after {
+    content: "";
+    flex-shrink: 0;
+    width: .55rem;
+    height: .55rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform .15s;
+}
+
+.bpsim-erweitert[open] > summary::after {
+    transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.bpsim-erweitert > div {
+    padding: 0 .9rem .9rem;
+}
+
+/* Knopfleiste: am Handy unten fest - aber nur innerhalb des Kastens "Testperson waehlen" */
+.bpsim-aktionen {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .75rem;
+    padding: .75rem 0 1rem;
+    border-top: 1px solid var(--bpsim-rand);
+    background-color: #fff;
+}
+
 .bpsim-knopf {
     min-width: 15rem;
+    white-space: normal;
+}
+
+.bpsim-mit-js {
+    display: none;
+}
+
+.bpsim-js .bpsim-mit-js:not([hidden]) {
+    display: inline;
+}
+
+.bpsim-js .bpsim-ohne-js {
+    display: none;
 }
 
 @media (max-width: 767.98px) {
-    /* Knoepfe am unteren Rand fest und in voller Breite */
     .bpsim-aktionen {
         position: sticky;
         bottom: 0;
         z-index: 10;
-        padding: .75rem 0;
-        background-color: var(--bpsim-flaeche);
-        box-shadow: 0 -1px 0 var(--bpsim-rand);
+        padding-bottom: calc(.75rem + env(safe-area-inset-bottom));
+        box-shadow: 0 -6px 12px -10px rgba(0, 0, 0, .35);
     }
 
-    .bpsim-knopf {
+    .bpsim-aktionen .bpsim-knopf {
+        flex: 1 1 100%;
         min-width: 0;
     }
 }
 
-/* Fork bpsim/standardkonform: Karte "Schnelle Anmeldung" (John Doe) oben auf der Auswahlseite */
-.bpsim-schnell {
-    border: 2px solid var(--bpsim-gruen);
-    border-radius: var(--bpsim-radius);
-    background: linear-gradient(135deg, #e8f5ee 0%, #ffffff 70%);
+@media (min-width: 768px) {
+    .bpsim-weg {
+        padding: 1.25rem 1.25rem 0;
+    }
 }

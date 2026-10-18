@@ -9,6 +9,8 @@
     <title data-th-text="${titel} + ' – ' + ${@environment.getProperty('app.web.title')}">Title</title>
     <link rel="stylesheet" type="text/css" data-th-href="@{__${basepath}__/webjars/bootstrap/css/bootstrap.min.css}">
     <link rel="stylesheet" type="text/css" data-th-href="@{__${basepath}__/css/layout.css}">
+    <!-- ohne defer: setzt die Klasse bpsim-js vor dem ersten Zeichnen, der Rest wartet auf DOMContentLoaded -->
+    <script src="" data-th-src="@{__${basepath}__/js/auswahl.js}"></script>
 </head>
 <body>
 <!-- ************************************************************************************** -->

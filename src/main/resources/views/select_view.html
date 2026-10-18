@@ -1,188 +1,254 @@
 <!DOCTYPE html>
-<!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Sprache de, Personenauswahl für das Handy
-     (Raster je Bildschirmbreite, ganze Karte antippbar, Felder untereinander, Knöpfe unten fest), Schnellanmeldung
-     mit John Doe (Karte oben, Bestätigung im Dialog, POST /select/schnell). -->
+<!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Sprache de; Personenauswahl als geführter Ablauf,
+     mobil zuerst (2026-10-18): oben die Anfrage des Dienstes, dann zwei klar getrennte Wege – Schnellanmeldung mit
+     John Doe (Dialog, POST /select/schnell) oder Testperson wählen (1 Person → 2 Identifizierungsmittel →
+     3 Erweitert: Status und fachlicher Kontext, je Gerät vorbelegt). Der Knopf nennt die gewählte Person und klebt nur
+     innerhalb dieses Weges am unteren Rand. Feldnamen, Endpunkte und IDs wie bisher (Tests, Skripte). -->
 <html lang="de">
 <head data-th-replace="~{fragments/snippets :: head('Anmelden')}"></head>
 <body>
-    <nav data-th-replace="~{fragments/snippets :: navbar}"></nav>
-    <div class="container">
-        <!-- Fork: Schnellanmeldung – ein Klick, bestätigen, weiter (Person, Mittel und Kontext legt der Simulator fest) -->
-        <div class="card bpsim-schnell mb-4" data-th-if="${schnellPerson}">
+<nav data-th-replace="~{fragments/snippets :: navbar}"></nav>
+<main class="container bpsim-seite">
+    <form id="auswahl" class="bpsim-auswahl" method="post" action="#" data-bpsim-auswahl
+          data-th-action="@{__${basepath}__/select/submit}" data-th-object="${formdata}">
+
+        <header class="mb-3">
+            <h1 class="h3 mb-1">Anmelden mit der BundID</h1>
+            <p class="text-muted mb-2">Ein Online-Dienst bittet um Ihre Anmeldung. Diese Seite spielt die BundID nach –
+                Sie melden sich mit einer fiktiven Testperson an.</p>
+            <!-- was der Dienst im AuthnRequest verlangt -->
+            <ul class="bpsim-anfrage list-unstyled mb-0" aria-label="Anfrage des Dienstes">
+                <li data-th-if="${anfrage.issuer}"><span class="text-muted">Dienst</span>
+                    <code class="text-break" data-th-text="${anfrage.issuer}">https://dienst.example.de</code></li>
+                <li><span class="text-muted">Gefordert</span>
+                    <strong data-th-text="'Niveau „' + ${anfrageNiveau} + '“'">Niveau „normal“</strong></li>
+                <li data-th-if="${anfrage.forceAuthn}"><span class="text-muted">Neue Anmeldung verlangt</span>
+                    <code>ForceAuthn</code></li>
+            </ul>
+        </header>
+
+        <!-- Fork bpsim/standardkonform: Hinweis auf eine bestehende Anmeldesitzung (SSO) -->
+        <div class="alert alert-info" data-th-if="${ssoInfo}">
+            Bestehende Anmeldesitzung: <b data-th-text="${ssoInfo}">x</b>. Der Dienst verlangt eine neue Anmeldung
+            oder ein höheres Vertrauensniveau – Person und fachlicher Kontext sind vorbelegt.
+            <a data-th-href="@{__${basepath}__/sso/logout}">Sitzung beenden</a>
+        </div>
+
+        <h2 class="bpsim-frage">Wie möchten Sie sich anmelden?</h2>
+
+        <!-- Weg 1: Schnellanmeldung – ein Klick, bestätigen, weiter (Person, Mittel und Kontext legt der Simulator fest) -->
+        <section class="card bpsim-schnell" aria-labelledby="schnellKarteTitel" data-th-if="${schnellPerson}">
             <div class="card-body d-flex flex-column flex-md-row align-items-md-center gap-3">
                 <div class="flex-grow-1">
-                    <h1 class="h4 mb-1">Schnelle Anmeldung</h1>
-                    <p class="mb-0 text-muted">
-                        Mit der fiktiven Testperson
+                    <h3 class="h5 mb-1" id="schnellKarteTitel">
+                        <svg class="bpsim-symbol" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="currentColor"/>
+                        </svg>
+                        Schnellanmeldung
+                    </h3>
+                    <p class="mb-1">Als fiktive Person
                         <b data-th-text="${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">John Doe</b>
-                        aus <span data-th-text="${schnellPerson.localityName}">Hof</span> (Bayern) – anklicken, bestätigen,
-                        weiter. Identifizierung: <span data-th-text="${schnellIdent}">Benutzername</span>, Vertrauensniveau
-                        „<span data-th-text="${schnellNiveau}">normal</span>“.
+                        aus <span data-th-text="${schnellPerson.localityName}">Hof</span> (Bayern) – antippen, bestätigen,
+                        fertig.</p>
+                    <p class="small text-muted mb-0">
+                        Identifizierung: <span data-th-text="${schnellIdent}">Benutzername</span> · Niveau
+                        „<span data-th-text="${schnellNiveau}">normal</span>“ · eigenes Demo-Konto je Gerät
                     </p>
                 </div>
                 <button type="button" class="btn btn-success btn-lg bpsim-knopf text-nowrap" id="schnellAnmelden"
                         data-bs-toggle="modal" data-bs-target="#schnellModal"
                         data-th-text="'Anmelden als ' + ${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">Anmelden als John Doe</button>
             </div>
-        </div>
-        <form action="#" data-th-action="@{__${basepath}__/select/submit}" method="post" data-th-object="${formdata}">
-            <div class="row">
-                <h2 class="h1">Oder eine Person wählen</h2>
-            </div>
-            <!-- Fork bpsim/standardkonform: Hinweis auf eine bestehende Anmeldesitzung (SSO) -->
-            <div class="alert alert-info" data-th-if="${ssoInfo}">
-                Bestehende Anmeldesitzung: <b data-th-text="${ssoInfo}">x</b>. Der Dienst verlangt eine neue Anmeldung
-                oder ein höheres Vertrauensniveau – Person und fachlicher Kontext sind vorbelegt.
-                <a data-th-href="@{__${basepath}__/sso/logout}">Sitzung beenden</a>
-            </div>
-            <!-- Anzeige Personenliste als Radio-Group -->
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-2">
-                <div class="col" th:each="user, iterStat: ${userlist}">
-                    <div data-th-id="'userKachel_' + ${iterStat.count}" class="card h-100 bpsim-person">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" data-th-value="${user.id}" data-th-field="*{userId}" name="r" id="id" data-th-id="'user_' + ${iterStat.count}">
-                            <!-- stretched-link: ein Tipp irgendwo auf die Karte wählt die Person -->
-                            <label class="form-check-label stretched-link" for="id" data-th-for="'user_' + ${iterStat.count}">
-                                <span class="fw-bold" data-th-text="${user.givenname} + ' ' + ${user.surname}">a</span> (<span class="text-break" data-th-text="${user.mail}"></span>) <br>
-                                <span data-th-if="${user.postalAddress}" data-th-text="${user.postalAddress} + ', ' + ${user.postalCode} + ' ' + ${user.localityName} ">b</span>
-                                <span data-th-if="${user.country}" data-th-text="', ' + ${user.country}">c</span><br>
-                                <span data-th-text="${templateTools.formatDate(user.birthdate)}"></span>
-                                <span data-th-if="${user.placeOfBirth}" data-th-text="'in ' + ${user.placeOfBirth}"></span><br>
-                                bPK2: <code class="text-break"><span data-th-text="${user.bpk2}"></span></code>
-                            </label>
+        </section>
+
+        <div class="bpsim-oder" aria-hidden="true"><span>oder</span></div>
+
+        <!-- Weg 2: Testperson wählen – Person, Identifizierungsmittel, optional Erweitert, ein Knopf -->
+        <section id="testperson" class="bpsim-weg" aria-labelledby="testpersonTitel">
+            <h3 class="h5 mb-1" id="testpersonTitel">Testperson wählen</h3>
+            <p class="small text-muted">Für andere Personen, ein anderes Identifizierungsmittel (z. B. für einen
+                Step-up) oder um eine abgebrochene bzw. fehlerhafte Anmeldung vorzuführen.</p>
+
+            <fieldset class="mb-2">
+                <legend class="bpsim-schritt"><span class="bpsim-nr" aria-hidden="true">1</span> Person</legend>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-2 align-items-start">
+                    <div class="col" data-th-each="user, iterStat : ${userlist}">
+                        <div data-th-id="'userKachel_' + ${iterStat.count}" class="card bpsim-person">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" data-th-value="${user.id}"
+                                       data-th-field="*{userId}" data-th-id="'user_' + ${iterStat.count}"
+                                       data-th-attr="data-name=${user.givenname + ' ' + user.surname}">
+                                <!-- stretched-link: ein Tipp irgendwo auf die Karte wählt die Person -->
+                                <label class="form-check-label stretched-link" data-th-for="'user_' + ${iterStat.count}">
+                                    <span class="bpsim-person-name" data-th-text="${user.givenname} + ' ' + ${user.surname}">Maria Neumann</span>
+                                    <span class="bpsim-person-kurz">
+                                        <span data-th-text="${user.localityName != null ? user.localityName + (user.country != null and user.country != 'DE' ? ' (' + user.country + ')' : '') : 'ohne Anschrift (Ausland)'}">Berlin</span>
+                                        <span data-th-if="${user.birthdate != null and #strings.length(user.birthdate) >= 4}"
+                                              data-th-text="'· Jahrgang ' + ${#strings.substring(user.birthdate, 0, 4)}">· Jahrgang 1964</span>
+                                    </span>
+                                    <!-- Einzelheiten nur bei der gewählten Person (CSS :has) -->
+                                    <span class="bpsim-person-details">
+                                        <span class="d-block" data-th-if="${user.postalAddress}"
+                                              data-th-text="${user.postalAddress} + ', ' + ${user.postalCode} + ' ' + ${user.localityName}">Thomas-Mann-Straße 3, 10409 Berlin</span>
+                                        <span class="d-block">geboren <span data-th-text="${templateTools.formatDate(user.birthdate)}">12.08.1964</span><span
+                                                data-th-if="${user.placeOfBirth}" data-th-text="' in ' + ${user.placeOfBirth}"> in Berlin</span></span>
+                                        <span class="d-block text-break" data-th-text="${user.mail}">maria@example.com</span>
+                                        <span class="d-block">bPK2 <code class="text-break" data-th-text="${user.bpk2}">BUNDIDSIM-U01</code>
+                                            <span class="text-muted">+ Kontext</span></span>
+                                    </span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row g-2 mb-3 mt-2">
-                <div class="col-12 d-grid d-md-block">
-                    <button type="submit" class="btn btn-outline-primary"
-                            th:formaction="@{__${basepath}__/edit}">Person bearbeiten (optional)</button>
+                <button type="submit" class="btn btn-link bpsim-link px-0" id="personBearbeiten"
+                        data-th-formaction="@{__${basepath}__/edit}">Angaben der gewählten Person ändern …</button>
+            </fieldset>
+
+            <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-6">
+                    <fieldset>
+                        <legend class="bpsim-schritt"><span class="bpsim-nr" aria-hidden="true">2</span> Identifizierung</legend>
+                        <div class="form-floating">
+                            <select class="form-select" id="identWith" data-th-field="*{identifikationWith}">
+                                <option data-th-each="item : ${identWithList}" data-th-value="${item[0]}"
+                                        data-th-text="${item[1]} + ' – Niveau ' + ${mittelNiveau[item[0]]}">Benutzername – Niveau normal</option>
+                            </select>
+                            <label for="identWith">Identifizierungsmittel</label>
+                        </div>
+                        <!-- nur bei eIDAS sichtbar (CSS :has; ohne :has immer sichtbar) -->
+                        <div class="row g-2 mt-0 bpsim-eidas">
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="eidasCountry" data-th-field="*{eidasCountry}"
+                                            data-th-classappend="${#fields.hasErrors('eidasCountry')} ? 'is-invalid' : ''">
+                                        <option value="" selected></option>
+                                        <option value="AT">AT</option>
+                                        <option value="DK">DK</option>
+                                        <option value="BE">BE</option>
+                                        <option value="IT">IT</option>
+                                        <option value="FR">FR</option>
+                                        <option value="HU">HU</option>
+                                        <option value="HR">HR</option>
+                                    </select>
+                                    <label for="eidasCountry">eIDAS-Land</label>
+                                    <div id="eidasCountryFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="eidasLoa" data-th-field="*{eidasLoa}"
+                                            data-th-classappend="${#fields.hasErrors('eidasLoa')} ? 'is-invalid' : ''">
+                                        <option value="" selected></option>
+                                        <option value="LOW">Niedrig</option>
+                                        <option value="SUBSTANTIAL">Substantiell</option>
+                                        <option value="HIGH">Hoch</option>
+                                    </select>
+                                    <label for="eidasLoa">eIDAS-Niveau</label>
+                                    <div id="eidasLoaFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
+                                </div>
+                            </div>
+                            <div class="col-12 form-text mt-1">Land und Niveau des ausländischen Ausweises – nur für eIDAS.</div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <fieldset>
+                        <legend class="bpsim-schritt"><span class="bpsim-nr" aria-hidden="true">3</span> Erweitert
+                            <span class="fw-normal text-muted small">(optional)</span></legend>
+                        <details class="bpsim-erweitert" id="erweitert"
+                                 data-th-open="${#fields.hasErrors('domainContext') or (formdata.status != null and formdata.status != 'OK')}">
+                            <summary id="erweitertSummary">
+                                <span>Status <b data-bpsim-statustext data-th-text="${formdata.status == 'CANCEL' ? 'Abgebrochen' : (formdata.status == 'ERROR' ? 'Fehler' : 'Erfolgreich')}">Erfolgreich</b>
+                                    · Kontext <code data-bpsim-kontext data-th-text="${formdata.domainContext}">-k4m2x9q7</code></span>
+                            </summary>
+                            <div class="pt-2">
+                                <div class="form-floating mb-2">
+                                    <select class="form-select" id="status" data-th-field="*{status}">
+                                        <option value="OK" selected>Erfolgreich</option>
+                                        <option value="CANCEL">Abgebrochen</option>
+                                        <option value="ERROR">Fehler</option>
+                                    </select>
+                                    <label for="status">Status der Antwort</label>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="domaincontext" value="" autocapitalize="off"
+                                           spellcheck="false" autocomplete="off" data-th-field="*{domainContext}"
+                                           aria-describedby="domaincontexthilfe"
+                                           data-th-classappend="${#fields.hasErrors('domainContext')} ? 'is-invalid' : ''">
+                                    <label for="domaincontext">Fachlicher Kontext *</label>
+                                    <div id="domaincontextfeedback" class="invalid-feedback ms-2">Pflichtfeld! (Beispiel: <code>-teamX</code>)</div>
+                                </div>
+                                <p class="form-text mb-0" id="domaincontexthilfe">
+                                    Wird an bPK2 und E-Mail angehängt (<code>name@example.com</code> →
+                                    <code>name<b>-kontext</b>@example.com</code>). Vorbelegt mit einer Kennung dieses
+                                    Geräts: Auf diesem Gerät ist jede Testperson immer dasselbe Konto. Gleicher Kontext =
+                                    gleiche Person im Dienst.
+                                </p>
+                            </div>
+                        </details>
+                    </fieldset>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <h1>Identifizierung</h1>
+            <!-- klebt (Handy) nur innerhalb dieses Weges und schickt alles ab, was nötig ist -->
+            <div class="bpsim-aktionen">
+                <button type="submit" value="cancel" class="btn btn-outline-secondary d-none d-md-inline-block"
+                        data-th-formaction="@{__${basepath}__/select/cancel}">Abbrechen</button>
+                <button type="submit" value="submit" id="applyPerson" class="btn btn-primary btn-lg bpsim-knopf">
+                    <span class="bpsim-ohne-js">Mit der gewählten Person anmelden</span>
+                    <span class="bpsim-mit-js" data-bpsim-status="OK">Als <span data-bpsim-name><th:block
+                            th:each="u : ${userlist}" th:if="${u.id == formdata.userId}"
+                            th:text="${u.givenname + ' ' + u.surname}">Maria Neumann</th:block></span> anmelden</span>
+                    <span class="bpsim-mit-js" data-bpsim-status="CANCEL" hidden>„Abgebrochen“ an den Dienst senden</span>
+                    <span class="bpsim-mit-js" data-bpsim-status="ERROR" hidden>„Fehler“ an den Dienst senden</span>
+                </button>
             </div>
+        </section>
 
-            <div class="row g-2 mb-3">
-                <div class="col-12 col-md-3">
-                    <div class="form-floating">
-                        <select class="form-select" id="identWith" th:field="*{identifikationWith}">
-                            identWithList
-                            <option th:each="item : ${identWithList}" th:value="${item[0]}" th:text="${item[1]}">a</option>
-                        </select>
-                        <label for="identWith">Identifizierung mit::</label>
-                    </div>
-                </div>
-                <div class="col-6 col-md-2 offset-md-1">
-                    <div class="form-floating">
-                        <select class="form-select" id="eidasCountry" data-th-field="*{eidasCountry}"
-                                data-th-classappend="${#fields.hasErrors('eidasCountry')} ? 'is-invalid' : ''">
-                            <option value="" selected></option>
-                            <option value="AT">AT</option>
-                            <option value="DK">DK</option>
-                            <option value="BE">BE</option>
-                            <option value="IT">IT</option>
-                            <option value="FR">FR</option>
-                            <option value="HU">HU</option>
-                            <option value="HR">HR</option>
-                        </select>
-                        <label for="eidasCountry">Eidas-Land:</label>
-                        <div id="eidasCountryFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="form-floating">
-                        <select class="form-select" id="eidasLoa" data-th-field="*{eidasLoa}"
-                                data-th-classappend="${#fields.hasErrors('eidasLoa')} ? 'is-invalid' : ''">
-                            <option value="" selected></option>
-                            <option value="LOW">Niedrig</option>
-                            <option value="SUBSTANTIAL">Substantiell</option>
-                            <option value="HIGH">Hoch</option>
-                        </select>
-                        <label for="eidasLoa">Eidas-Vertrauensniveau:</label>
-                        <div id="eidasLoaFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-3">
-                    <p class="mt-md-2 mb-0 small text-muted">
-                        Land und Vertrauensniveau nur auswählen, wenn Identififizierung mit Eidas.
-                    </p>
-                </div>
-            </div>
+        <p class="text-center mt-3 d-md-none">
+            <button type="submit" value="cancel" class="btn btn-link bpsim-link"
+                    data-th-formaction="@{__${basepath}__/select/cancel}">Anmeldung abbrechen</button>
+        </p>
+        <input type="hidden" data-th-field="*{samlRequest}" name="request"/>
+    </form>
 
-            <div class="row g-2 mb-3">
-                <div class="col-12 col-md-3">
-                    <div class="form-floating">
-                        <select class="form-select" id="status" data-th-field="*{status}">
-                            <option value="OK" selected>Erfolgreich</option>
-                            <option value="CANCEL">Abgebrochen</option>
-                            <option value="ERROR">Fehler</option>
-                        </select>
-                        <label for="status">Status:</label>
-                    </div>
+    <!-- Fork: Bestätigung der Schnellanmeldung (Bootstrap-Dialog, Skript als Datei – CSP script-src 'self') -->
+    <div class="modal fade" id="schnellModal" tabindex="-1" aria-labelledby="schnellTitel" aria-hidden="true"
+         data-th-if="${schnellPerson}">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" method="post" action="#" data-th-action="@{__${basepath}__/select/schnell}">
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="schnellTitel"
+                        data-th-text="'Als ' + ${schnellPerson.givenname} + ' ' + ${schnellPerson.surname} + ' anmelden?'">Als John Doe anmelden?</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                 </div>
-                <div class="col-12 col-md-3 offset-md-1">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="domaincontext" value="" data-th-field="*{domainContext}"
-                               data-th-classappend="${#fields.hasErrors('domainContext')} ? 'is-invalid' : ''">
-                        <label for="domaincontext"><span class="text-danger bolder">*</span> fachlicher Kontext:</label>
-                        <div id="domaincontextfeedback" class="invalid-feedback ms-2">Pflichtfeld! (Beispiel: <code>-teamX</code>)</div>
-                    </div>
+                <div class="modal-body">
+                    <p>Die BundID-Simulation meldet Sie mit dieser fiktiven Person an und schickt dem Dienst eine
+                        signierte SAML-Response mit diesen Angaben:</p>
+                    <dl class="row small mb-2">
+                        <dt class="col-5">Name</dt>
+                        <dd class="col-7" data-th-text="${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">John Doe</dd>
+                        <dt class="col-5">Anschrift</dt>
+                        <dd class="col-7" data-th-text="${schnellPerson.postalAddress} + ', ' + ${schnellPerson.postalCode} + ' ' + ${schnellPerson.localityName}">Musterstraße 1, 95028 Hof</dd>
+                        <dt class="col-5">Geboren</dt>
+                        <dd class="col-7" data-th-text="${templateTools.formatDate(schnellPerson.birthdate)} + ' in ' + ${schnellPerson.placeOfBirth}">01.04.1990 in München</dd>
+                        <dt class="col-5">Identifizierung</dt>
+                        <dd class="col-7" data-th-text="${schnellIdent} + ' (Niveau ' + ${schnellNiveau} + ')'">Benutzername (Niveau normal)</dd>
+                    </dl>
+                    <p class="small text-muted mb-0">Auf diesem Gerät bleibt es dasselbe Demo-Konto (Termine und Postfach
+                        bleiben erhalten); andere Geräte bekommen ein eigenes. Alle Angaben sind fiktiv.</p>
                 </div>
-                <div class="col-12 col-md-5">
-                    <p class="mt-md-2 mb-0 small text-muted">
-                        Der Kontext wird in die Email-Adresse (aus <code>name@example.com</code> wird
-                        <code>name<span class="text-success">kontext</span>@example.com</code>) und in die <code>bPK2</code> als Suffix eingefügt.
-                    </p>
+                <input type="hidden" name="samlRequest" data-th-value="${formdata.samlRequest}"/>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-success" id="schnellBestaetigen">Bestätigen und anmelden</button>
                 </div>
-            </div>
-
-            <div class="bpsim-aktionen my-4 my-md-5">
-                <div class="d-grid gap-2 d-md-flex">
-                    <button type="submit" value="submit" id="applyPerson" class="btn btn-primary bpsim-knopf">Person übernehmen</button>
-                    <button type="cancel" value="cancel" th:formaction="@{__${basepath}__/select/cancel}" class="btn btn-secondary bpsim-knopf">Abbrechen</button>
-                </div>
-            </div>
-            <input type="hidden" data-th-field="*{samlRequest}" name="request"/>
-        </form>
-
-        <!-- Fork: Bestätigung der Schnellanmeldung (Bootstrap-Dialog, Skript als Datei – CSP script-src 'self') -->
-        <div class="modal fade" id="schnellModal" tabindex="-1" aria-labelledby="schnellTitel" aria-hidden="true"
-             data-th-if="${schnellPerson}">
-            <div class="modal-dialog modal-dialog-centered">
-                <form class="modal-content" method="post" action="#" data-th-action="@{__${basepath}__/select/schnell}">
-                    <div class="modal-header">
-                        <h2 class="modal-title h5" id="schnellTitel"
-                            data-th-text="'Als ' + ${schnellPerson.givenname} + ' ' + ${schnellPerson.surname} + ' anmelden?'">Als John Doe anmelden?</h2>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Die BundID-Simulation meldet Sie mit dieser fiktiven Person an und schickt dem Dienst eine
-                            signierte SAML-Response mit diesen Angaben:</p>
-                        <dl class="row small mb-2">
-                            <dt class="col-5">Name</dt>
-                            <dd class="col-7" data-th-text="${schnellPerson.givenname} + ' ' + ${schnellPerson.surname}">John Doe</dd>
-                            <dt class="col-5">Anschrift</dt>
-                            <dd class="col-7" data-th-text="${schnellPerson.postalAddress} + ', ' + ${schnellPerson.postalCode} + ' ' + ${schnellPerson.localityName}">Musterstraße 1, 95028 Hof</dd>
-                            <dt class="col-5">Geboren</dt>
-                            <dd class="col-7" data-th-text="${templateTools.formatDate(schnellPerson.birthdate)} + ' in ' + ${schnellPerson.placeOfBirth}">01.04.1990 in München</dd>
-                            <dt class="col-5">Identifizierung</dt>
-                            <dd class="col-7" data-th-text="${schnellIdent} + ' (Niveau ' + ${schnellNiveau} + ')'">Benutzername (Niveau normal)</dd>
-                        </dl>
-                        <p class="small text-muted mb-0">Auf diesem Gerät bleibt es dasselbe Demo-Konto (Termine und Postfach
-                            bleiben erhalten); andere Geräte bekommen ein eigenes. Alle Angaben sind fiktiv.</p>
-                    </div>
-                    <input type="hidden" name="samlRequest" data-th-value="${formdata.samlRequest}"/>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                        <button type="submit" class="btn btn-success" id="schnellBestaetigen">Bestätigen und anmelden</button>
-                    </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
-    <footer data-th-replace="~{fragments/snippets :: footer}"></footer>
+</main>
+<footer data-th-replace="~{fragments/snippets :: footer}"></footer>
 </body>
 </html>
