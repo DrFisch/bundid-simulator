@@ -48,7 +48,10 @@ Neue Endpunkte des Postfachs (nur mit `app.postfach.enabled=true`):
 - `GET /postfach/nachricht/{id}` – eine Nachricht; nur im eigenen Postfach (fremde IDs: 404). Liegt das Niveau der
   Nachricht (`storkQaaLevel`) über dem der Sitzung, ist der Inhalt gesperrt und es gibt einen Step-up.
 - `GET|POST /postfach/anmelden` – Personenauswahl am BundID-Konto (bei Step-up nur passende Identifizierungsmittel,
-  Person und Kontext vorbelegt); Rücksprung nur innerhalb von `/postfach`.
+  Person und Kontext vorbelegt; ohne Sitzung Kontext je Gerät wie in der Auswahl; kein eIDAS, weil die Felder für Land
+  und eIDAS-Niveau fehlen); Rücksprung nur innerhalb von `/postfach`.
+- `POST /postfach/schnell` – Schnellanmeldung am Konto mit John Doe (Mittel passend zum Niveau, Kontext `-jd` plus
+  Gerätekennung = dasselbe Demo-Konto wie die Schnellanmeldung am Dienst); Rücksprung nur innerhalb von `/postfach`.
 - `POST /postfach/abmelden` – beendet die Anmeldesitzung (wie das Abmelden im BundID-Konto).
 - `POST /api/v1/messages` – Einlieferung: JSON `mailboxUuid`, `title`, `content` (max. 1 MB), `sender`, `service`,
   `replyAddress`, `storkQaaLevel` (1–4), Header `X-Api-Key`; Antwort 201 `{"id": …}`, 400 mit Feldfehlern, 401 bei
@@ -64,7 +67,27 @@ fiktiven Person **John Doe** (`users.yml`, Id `U20`, Hof in Bayern). Ein Klick u
 Benutzername, substanziell: Elster, hoch: Online-Ausweis), der fachliche Kontext ist `-jd` plus eine zufällige
 Kennung je Gerät (Cookie `BUNDIDSIM_SCHNELL`, ein Jahr) – auf einem Gerät bleibt es dasselbe Demo-Konto, verschiedene
 Geräte teilen sich keins. Danach wie „Person übernehmen“ (Anmeldesitzung, signierte Response). Die normale Auswahl
-steht darunter unverändert (IDs gleich). Logik in `utils/SchnellAnmeldungTools` (Test `SchnellAnmeldungToolsTest`).
+steht darunter (IDs gleich). Logik in `utils/SchnellAnmeldungTools` (Test `SchnellAnmeldungToolsTest`).
+
+Personenauswahl als geführter Ablauf (2026-10-18, immer aktiv): Oben steht, was der Dienst im AuthnRequest verlangt
+(Issuer, Niveau, ggf. `ForceAuthn`), dann zwei Wege – Schnellanmeldung oder der Kasten „Testperson wählen“ mit 1 Person
+(kompakte Karten; Anschrift, Geburt, E-Mail, bPK2 nur bei der gewählten), 2 Identifizierungsmittel mit dem Niveau, das
+es erreicht (eIDAS-Land/-Niveau nur bei eIDAS), 3 „Erweitert“ (Status, fachlicher Kontext). Das Pflichtfeld
+**fachlicher Kontext ist je Gerät vorbelegt** (`-` plus Gerätekennung aus `BUNDIDSIM_SCHNELL`; eine Anmeldesitzung mit
+Kontext hat Vorrang), bleibt änderbar und wird weiter serverseitig geprüft. Der Knopf nennt die gewählte Person („Als
+Maria Neumann anmelden“) und klebt auf dem Handy nur innerhalb des Kastens. Lehnt der Server ab, steht oben eine
+Zusammenfassung mit Links zu den Feldern; die Formular-Aktion trägt den Anker `#fehler`, der Browser springt ohne
+Skript dorthin. „Angaben der gewählten Person ändern …“ (`POST /edit`) zeigt bPK2/E-Mail mit dem Kontext und bietet
+„Zurück zur Auswahl“ (`POST /edit/zurueck`, neu) statt nur „Abbrechen“ (das schickt dem Dienst einen Abbruch).
+Anlass: Befund B15 – „Person übernehmen“ scheiterte auf dem Handy am leeren Pflicht-Kontext, die Seite lud oben neu.
+Endpunkte, Feldnamen und IDs (`#user_N`, `#userKachel_N`, `#identWith`, `#domaincontext`, `#applyPerson`, …) sind
+unverändert. Hilfen: `controller/AuswahlSeite` (Daten der Seiten), `static/js/auswahl.js` (Knopftext und
+Zusammenfassung; ohne Skript heißt der Knopf „Mit der gewählten Person anmelden“). Test `AuswahlSeitenTest` rendert die
+Seiten mit MockMvc.
+Die Gerätekennung bleibt nur gleich, wenn der Browser das Cookie beim AuthnRequest mitsendet (`SameSite=Lax`): Dienst
+und Simulator unter derselben Website mit demselben Schema (öffentlich `https://auth.…` → `https://bundid.…`). Lokal
+(`https://localhost:7001` → `http://localhost:8090`) ist das für den Browser cross-site – dort bekommt jeder Aufruf eine
+neue Kennung (der Kontext ist trotzdem vorbelegt).
 Die Sitzung gilt nur, wenn der Browser das Cookie mitsendet: bei Diensten unter derselben Website (z. B.
 `*.example.de`) bzw. lokal unter `localhost`; bei Cross-Site-POSTs von fremden Websites (SameSite=Lax) zeigt der
 Simulator wie bisher die Auswahl.
@@ -89,6 +112,11 @@ Simulator wie bisher die Auswahl.
 - Postfach: Kopfzeile einzeilig (Zurück zum Dienst, Titel, Konto-Menü mit Name, Niveau und Abmelden über
   `details`/`summary` – ohne Skript), Nachrichten als Karten mit Punkt für ungelesen; der zweite „Zurück“-Knopf unter
   der Liste entfällt.
+- Eigenes Erscheinungsbild aller Seiten (2026-10-18): gemeinsame Kopfzeile (dunkelblau, Zeichen, Titel, „Umgebung: …“ –
+  auf dem Handy als zweite Zeile), helle Fußzeile mit Version und Hinweis „Simulation, alle Personen fiktiv“, Farben als
+  CSS-Variablen, Kontrast für leise Texte und Umriss-Knöpfe ≥ 4,5:1 (axe, WCAG 2.2 AA ohne schwere Verstöße auf
+  Auswahl, Fehlerfall, „Angaben ändern“ und Postfach). Seitentitel je Seite (`fragments/snippets :: head('…')`). Keine
+  Nachahmung des Bundes-Designs.
 - Fußzeile: Version aus dem Maven-Build (`@project.version@` per Resource-Filtering, z. B. `1.1.6-SNAPSHOT (Fork
   bpsim/standardkonform)`) statt `latest`. „Umgebung: …“ in der Kopfzeile kommt wie im Original aus `app.env`
   (`APP_ENV`, Standard `localDEV`); das BürgerPortal setzt „Simulation (Studienprojekt)“.
@@ -98,7 +126,7 @@ Simulator wie bisher die Auswahl.
 Die `.dockerignore` des Originalprojekts schließt `src/test` vom Image-Build aus (dort: „No tests to run“). Tests
 deshalb separat, z. B.:
 `docker run --rm -v "$PWD":/app -v bpsim-maven-repo:/root/.m2 -w /app maven:3.9.16-eclipse-temurin-25 mvn -q test`
-(Berichte unter `target/surefire-reports`; Stand: 32 Tests grün).
+(Berichte unter `target/surefire-reports`; Stand: 40 Tests grün, davon 5 Seiten-Tests in `AuswahlSeitenTest`).
 
 ## Annahmen
 
