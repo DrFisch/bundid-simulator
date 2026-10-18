@@ -32,4 +32,8 @@ public class EditFormData {
 
     private String eidasCountry;
     private String eidasLoa;
+
+    // Fork bpsim/standardkonform (2026-10-18, siehe FORK.md): fachlicher Kontext der Auswahl – nur für den Rückweg
+    // "Zurück zur Auswahl"; bPK2 und E-Mail enthalten ihn beim Bearbeiten schon.
+    private String domainContext;
 }

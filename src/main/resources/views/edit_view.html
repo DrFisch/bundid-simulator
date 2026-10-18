@@ -1,225 +1,278 @@
 <!DOCTYPE html>
-<!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Sprache de, Felder auf dem Handy untereinander,
-     Knöpfe unten fest. -->
+<!-- Geändert 2026 im Fork bpsim/standardkonform (siehe FORK.md): Sprache de; im Stil der Auswahlseite (2026-10-18):
+     Blöcke Person, Anschrift, Kennungen, Identifizierung (am Computer zweispaltig), Fehler oben mit Sprung dorthin,
+     Mittel mit Niveau, „Zurück zur Auswahl“ (POST /edit/zurueck) statt nur „Abbrechen“. Feldnamen und IDs wie bisher. -->
 <html lang="de">
 <head data-th-replace="~{fragments/snippets :: head('Angaben ändern')}"></head>
 <body>
 <nav data-th-replace="~{fragments/snippets :: navbar}"></nav>
-<div class="container">
-    <form action="#" data-th-action="@{__${basepath}__/edit/submit}" method="post" data-th-object="${eformdata}">
-        <div class="row">
-            <h1>Personendaten</h1>
-        </div>
-        <!-- neue Zeile -->
-        <div class="row g-2 mb-3">
-            <div class="col-12 col-md-4">
-                <div class="form-floating">
-                    <input type="text" class="form-control" style="font-size:80%;" id="userbpk2" autocapitalize="off" spellcheck="false"
-                           data-th-field="*{user.bpk2}" value="a"
-                           data-th-classappend="${#fields.hasErrors('user.bpk2')} ? 'is-invalid' : ''">
-                    <label for="userbpk2"><span class="text-danger bolder">*</span> bPK2:</label>
-                    <div id="userbpk2feedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-floating">
-                    <input type="text" inputmode="email" class="form-control" id="usermail" autocapitalize="off" spellcheck="false"
-                           data-th-field="*{user.mail}" value="a"
-                           data-th-classappend="${#fields.hasErrors('user.mail')} ? 'is-invalid' : ''">
-                    <label for="usermail"><span class="text-danger bolder">*</span> Email:</label>
-                    <div id="usermailfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-        </div>
-        <!-- neue Zeile -->
-        <div class="row g-2 mb-3">
-            <div class="col-6 col-md-2">
-                <div class="form-floating">
-                    <select class="form-select" id="usergender" data-th-field="*{user.gender}">
-                        <option value="1">Herr</option>
-                        <option value="2">Frau</option>
-                        <option value="0">Unbekannt</option>
-                    </select>
-                    <label for="usergender">Anrede:</label>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="userpersonaltitle" value="a"
-                           data-th-field="*{user.personalTitle}">
-                    <label for="userpersonaltitle">Titel:</label>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="usergivenname" value="a"
-                           data-th-field="*{user.givenname}"
-                           data-th-classappend="${#fields.hasErrors('user.givenname')} ? 'is-invalid' : ''">
-                    <label for="usergivenname"><span class="text-danger bolder">*</span> Vorname:</label>
-                    <div id="usergivennamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="usersurname" value="a"
-                           data-th-field="*{user.surname}"
-                           data-th-classappend="${#fields.hasErrors('user.surname')} ? 'is-invalid' : ''">
-                    <label for="usersurname"><span class="text-danger bolder">*</span> Name:</label>
-                    <div id="usersurnamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-        </div>
-        <!-- neue Zeile -->
-        <div class="row g-2 mb-3">
-            <div class="col-6 col-md-2">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="usergebdatum" value="a"
-                           data-th-field="*{user.birthdate}"
-                           data-th-classappend="${#fields.hasErrors('user.birthdate')} ? 'is-invalid' : ''">
-                    <label for="usergebdatum"><span class="text-danger bolder">*</span> Geburtsdatum:</label>
-                    <div id="userbirthdatefeedback" class="invalid-feedback ms-2">Pflichtfeld! Format: YYYY-MM-DD</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="usergebort" value="a"
-                           data-th-field="*{user.placeOfBirth}"
-                           data-th-classappend="${#fields.hasErrors('user.placeOfBirth')} ? 'is-invalid' : ''">
-                    <label for="usergebort">Geburtsort:</label>
-                    <div id="usergebortfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="usergebname" value=""
-                           data-th-field="*{user.birthName}"
-                           data-th-classappend="${#fields.hasErrors('user.birthName')} ? 'is-invalid' : ''">
-                    <label for="usergebname">Geburtsname:</label>
-                    <div id="usergebnamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-        </div>
-        <!-- neue Zeile -->
-        <div class="row g-2 mb-3">
-            <div class="col-12 col-md-5">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="userpostaladdress" value="a"
-                           data-th-field="*{user.postalAddress}"
-                           data-th-classappend="${#fields.hasErrors('user.postalAddress')} ? 'is-invalid' : ''">
-                    <label for="userpostaladdress">Anschrift:</label>
-                    <div id="userpostaladdressfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="form-floating">
-                    <input type="text" inputmode="numeric" class="form-control" id="userpostalcode" value="a"
-                           data-th-field="*{user.postalCode}"
-                           data-th-classappend="${#fields.hasErrors('user.postalCode')} ? 'is-invalid' : ''">
-                    <label for="userpostalcode">Plz:</label>
-                    <div id="userpostalcodefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-4">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="userlocalityname" value="a"
-                           data-th-field="*{user.localityName}"
-                           data-th-classappend="${#fields.hasErrors('user.localityName')} ? 'is-invalid' : ''">
-                    <label for="userlocalityname">Ort:</label>
-                    <div id="userlocalitynamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-1">
-                <div class="form-floating">
-                    <select class="form-select" id="usercountry" data-th-field="*{user.country}">
-                        <option value=""></option>
-                        <option value="DE">DE</option>
-                        <option value="AT">AT</option>
-                        <option value="DK">DK</option>
-                        <option value="BE">BE</option>
-                        <option value="IT">IT</option>
-                        <option value="FR">FR</option>
-                        <option value="HU">HU</option>
-                        <option value="HR">HR</option>
-                    </select>
-                    <label for="usercountry">Land:</label>
-                </div>
-            </div>
-        </div>
-        <!-- neue Zeile -->
-        <div class="row mt-4">
-            <h1>Identifizierung</h1>
+<main class="container bpsim-seite">
+    <form id="bearbeiten" class="bpsim-auswahl" method="post" action="#" data-bpsim-auswahl
+          data-th-action="@{__${basepath}__/edit/submit#fehler}" data-th-object="${eformdata}">
+
+        <div id="fehler" class="alert alert-danger bpsim-fehler" role="alert" tabindex="-1" autofocus
+             data-th-if="${#fields.hasAnyErrors()}">
+            <h2 class="h6 mb-1">Bitte noch ergänzen – die Anmeldung wurde nicht abgeschickt</h2>
+            <ul class="mb-0 ps-3">
+                <li data-th-if="${#fields.hasErrors('user.givenname')}"><a href="#usergivenname">Vorname fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.surname')}"><a href="#usersurname">Name fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.birthdate')}"><a href="#usergebdatum">Geburtsdatum fehlt oder hat
+                    nicht die Form JJJJ-MM-TT</a> (unbekannte Teile als <code>xx</code>)</li>
+                <li data-th-if="${#fields.hasErrors('user.placeOfBirth')}"><a href="#usergebort">Geburtsort fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.birthName')}"><a href="#usergebname">Geburtsname fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.postalAddress')}"><a href="#userpostaladdress">Anschrift unvollständig:
+                    Straße fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.postalCode')}"><a href="#userpostalcode">Anschrift unvollständig:
+                    PLZ fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.localityName')}"><a href="#userlocalityname">Anschrift unvollständig:
+                    Ort fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.bpk2')}"><a href="#userbpk2">bPK2 fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('user.mail')}"><a href="#usermail">E-Mail fehlt oder ist ungültig</a></li>
+                <li data-th-if="${#fields.hasErrors('eidasCountry')}"><a href="#eidasCountry">eIDAS-Land fehlt</a></li>
+                <li data-th-if="${#fields.hasErrors('eidasLoa')}"><a href="#eidasLoa">eIDAS-Niveau fehlt</a></li>
+            </ul>
         </div>
 
-        <div class="row g-2 mb-3">
-            <div class="col-12 col-md-3">
-                <div class="form-floating">
-                    <select class="form-select" id="identWith" th:field="*{identifikationWith}">
-                        identWithList
-                        <option th:each="item : ${identWithList}" th:value="${item[0]}" th:text="${item[1]}">a</option>
-                    </select>
-                    <label for="identWith">Identifizierung mit::</label>
-                </div>
+        <header class="mb-3">
+            <h1 class="h3 mb-1">Angaben der Person ändern</h1>
+            <p class="text-muted mb-0">Die Änderungen gehen nur in diese eine Anmeldung (die SAML-Response an den
+                Dienst); die Testperson in der Liste bleibt, wie sie ist. Pflichtfelder sind mit * markiert.</p>
+        </header>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-6">
+                <section class="bpsim-block h-100" aria-labelledby="blockPerson">
+                    <h2 class="bpsim-schritt" id="blockPerson">Person</h2>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="usergender" data-th-field="*{user.gender}">
+                                    <option value="1">Herr</option>
+                                    <option value="2">Frau</option>
+                                    <option value="0">Unbekannt</option>
+                                </select>
+                                <label for="usergender">Anrede</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="userpersonaltitle" value="a"
+                                       data-th-field="*{user.personalTitle}">
+                                <label for="userpersonaltitle">Titel</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="usergivenname" value="a" autocomplete="off"
+                                       data-th-field="*{user.givenname}"
+                                       data-th-classappend="${#fields.hasErrors('user.givenname')} ? 'is-invalid' : ''">
+                                <label for="usergivenname">Vorname *</label>
+                                <div id="usergivennamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="usersurname" value="a" autocomplete="off"
+                                       data-th-field="*{user.surname}"
+                                       data-th-classappend="${#fields.hasErrors('user.surname')} ? 'is-invalid' : ''">
+                                <label for="usersurname">Name *</label>
+                                <div id="usersurnamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="usergebdatum" value="a" autocomplete="off"
+                                       placeholder="JJJJ-MM-TT" data-th-field="*{user.birthdate}"
+                                       data-th-classappend="${#fields.hasErrors('user.birthdate')} ? 'is-invalid' : ''">
+                                <label for="usergebdatum">Geburtsdatum *</label>
+                                <div id="userbirthdatefeedback" class="invalid-feedback ms-2">Pflichtfeld! Format: JJJJ-MM-TT</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="usergebort" value="a" autocomplete="off"
+                                       data-th-field="*{user.placeOfBirth}"
+                                       data-th-classappend="${#fields.hasErrors('user.placeOfBirth')} ? 'is-invalid' : ''">
+                                <label for="usergebort">Geburtsort</label>
+                                <div id="usergebortfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="usergebname" value="" autocomplete="off"
+                                       data-th-field="*{user.birthName}"
+                                       data-th-classappend="${#fields.hasErrors('user.birthName')} ? 'is-invalid' : ''">
+                                <label for="usergebname">Geburtsname</label>
+                                <div id="usergebnamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="form-text mb-0 mt-2">Geburtsdatum mit unbekannten Teilen als <code>xx</code>, z. B.
+                        <code>1964-xx-xx</code>.</p>
+                </section>
             </div>
-            <div class="col-6 col-md-2 offset-md-1">
-                <div class="form-floating">
-                    <select class="form-select" id="eidasCountry" data-th-field="*{eidasCountry}"
-                            data-th-classappend="${#fields.hasErrors('eidasCountry')} ? 'is-invalid' : ''">
-                        <option value="" selected></option>
-                        <option value="AT">AT</option>
-                        <option value="DK">DK</option>
-                        <option value="BE">BE</option>
-                        <option value="IT">IT</option>
-                        <option value="FR">FR</option>
-                        <option value="HU">HU</option>
-                        <option value="HR">HR</option>
-                    </select>
-                    <label for="eidasCountry">Eidas-Land:</label>
-                    <div id="eidasCountryFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
-                </div>
+
+            <div class="col-12 col-lg-6">
+                <section class="bpsim-block" aria-labelledby="blockAnschrift">
+                    <h2 class="bpsim-schritt" id="blockAnschrift">Anschrift</h2>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="userpostaladdress" value="a" autocomplete="off"
+                                       data-th-field="*{user.postalAddress}"
+                                       data-th-classappend="${#fields.hasErrors('user.postalAddress')} ? 'is-invalid' : ''">
+                                <label for="userpostaladdress">Straße und Hausnummer</label>
+                                <div id="userpostaladdressfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input type="text" inputmode="numeric" class="form-control" id="userpostalcode" value="a"
+                                       autocomplete="off" data-th-field="*{user.postalCode}"
+                                       data-th-classappend="${#fields.hasErrors('user.postalCode')} ? 'is-invalid' : ''">
+                                <label for="userpostalcode">PLZ</label>
+                                <div id="userpostalcodefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-8 col-sm-5">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="userlocalityname" value="a" autocomplete="off"
+                                       data-th-field="*{user.localityName}"
+                                       data-th-classappend="${#fields.hasErrors('user.localityName')} ? 'is-invalid' : ''">
+                                <label for="userlocalityname">Ort</label>
+                                <div id="userlocalitynamefeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-3">
+                            <div class="form-floating">
+                                <select class="form-select" id="usercountry" data-th-field="*{user.country}">
+                                    <option value=""></option>
+                                    <option value="DE">DE</option>
+                                    <option value="AT">AT</option>
+                                    <option value="DK">DK</option>
+                                    <option value="BE">BE</option>
+                                    <option value="IT">IT</option>
+                                    <option value="FR">FR</option>
+                                    <option value="HU">HU</option>
+                                    <option value="HR">HR</option>
+                                </select>
+                                <label for="usercountry">Land</label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bpsim-block mt-3" aria-labelledby="blockKennungen">
+                    <h2 class="bpsim-schritt" id="blockKennungen">Kennungen</h2>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="userbpk2" autocapitalize="off" spellcheck="false"
+                                       autocomplete="off" data-th-field="*{user.bpk2}" value="a"
+                                       data-th-classappend="${#fields.hasErrors('user.bpk2')} ? 'is-invalid' : ''">
+                                <label for="userbpk2">bPK2 *</label>
+                                <div id="userbpk2feedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" inputmode="email" class="form-control" id="usermail" autocapitalize="off"
+                                       spellcheck="false" autocomplete="off" data-th-field="*{user.mail}" value="a"
+                                       data-th-classappend="${#fields.hasErrors('user.mail')} ? 'is-invalid' : ''">
+                                <label for="usermail">E-Mail *</label>
+                                <div id="usermailfeedback" class="invalid-feedback ms-2">Pflichtfeld!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="form-text mb-0 mt-2">bPK2 und E-Mail enthalten schon den fachlichen Kontext der Auswahl
+                        (<code data-th-text="${eformdata.domainContext}">-kontext</code>) – andere bPK2 = anderes Konto im
+                        Dienst.</p>
+                </section>
             </div>
-            <div class="col-12 col-md-3">
-                <div class="form-floating">
-                    <select class="form-select" id="eidasLoa" data-th-field="*{eidasLoa}"
-                            data-th-classappend="${#fields.hasErrors('eidasLoa')} ? 'is-invalid' : ''">
-                        <option value="" selected></option>
-                        <option value="LOW">Niedrig</option>
-                        <option value="SUBSTANTIAL">Substantiell</option>
-                        <option value="HIGH">Hoch</option>
-                    </select>
-                    <label for="eidasLoa">Eidas-Vertrauensniveau:</label>
-                    <div id="eidasLoaFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
-                </div>
-            </div>
-            <div class="col-12 col-md-3">
-                <p class="mt-2 text-muted">
-                    Land und Vertrauensniveau nur auswählen, wenn Identififizierung mit Eidas.
-                </p>
+
+            <div class="col-12">
+                <section class="bpsim-block" aria-labelledby="blockIdent">
+                    <h2 class="bpsim-schritt" id="blockIdent">Identifizierung</h2>
+                    <div class="row g-2">
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="identWith" data-th-field="*{identifikationWith}">
+                                    <option data-th-each="item : ${identWithList}" data-th-value="${item[0]}"
+                                            data-th-text="${item[1]} + ' – Niveau ' + ${mittelNiveau[item[0]]}">EID (Ausweis) – Niveau hoch</option>
+                                </select>
+                                <label for="identWith">Identifizierungsmittel</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="status" data-th-field="*{status}">
+                                    <option value="OK" selected>Erfolgreich</option>
+                                    <option value="CANCEL">Abgebrochen</option>
+                                    <option value="ERROR">Fehler</option>
+                                </select>
+                                <label for="status">Status der Antwort</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 bpsim-eidas">
+                            <div class="form-floating">
+                                <select class="form-select" id="eidasCountry" data-th-field="*{eidasCountry}"
+                                        data-th-classappend="${#fields.hasErrors('eidasCountry')} ? 'is-invalid' : ''">
+                                    <option value="" selected></option>
+                                    <option value="AT">AT</option>
+                                    <option value="DK">DK</option>
+                                    <option value="BE">BE</option>
+                                    <option value="IT">IT</option>
+                                    <option value="FR">FR</option>
+                                    <option value="HU">HU</option>
+                                    <option value="HR">HR</option>
+                                </select>
+                                <label for="eidasCountry">eIDAS-Land</label>
+                                <div id="eidasCountryFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 bpsim-eidas">
+                            <div class="form-floating">
+                                <select class="form-select" id="eidasLoa" data-th-field="*{eidasLoa}"
+                                        data-th-classappend="${#fields.hasErrors('eidasLoa')} ? 'is-invalid' : ''">
+                                    <option value="" selected></option>
+                                    <option value="LOW">Niedrig</option>
+                                    <option value="SUBSTANTIAL">Substantiell</option>
+                                    <option value="HIGH">Hoch</option>
+                                </select>
+                                <label for="eidasLoa">eIDAS-Niveau</label>
+                                <div id="eidasLoaFeedback" class="invalid-feedback ms-2">Pflichtfeld für eIDAS!</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
-        <!-- neue Zeile -->
-        <div class="row g-2 mb-3">
-            <div class="col-12 col-md-3">
-                <div class="form-floating">
-                    <select class="form-select" id="status" data-th-field="*{status}">
-                        <option value="OK" selected>Erfolgreich</option>
-                        <option value="CANCEL">Abgebrochen</option>
-                        <option value="ERROR">Fehler</option>
-                    </select>
-                    <label for="status">Status:</label>
-                </div>
-            </div>
+
+        <!-- schickt alles ab, was nötig ist: darf am Handy unten kleben -->
+        <div class="bpsim-aktionen bpsim-aktionen-seite">
+            <button type="submit" class="btn btn-outline-secondary d-none d-md-inline-block"
+                    data-th-formaction="@{__${basepath}__/edit/zurueck}">Zurück zur Auswahl</button>
+            <button type="submit" class="btn btn-link bpsim-link d-none d-md-inline-block me-md-auto order-md-first"
+                    data-th-formaction="@{__${basepath}__/edit/cancel}">Anmeldung abbrechen</button>
+            <button type="submit" id="applyPerson" class="btn btn-primary btn-lg bpsim-knopf">
+                <span class="bpsim-ohne-js">Mit diesen Angaben anmelden</span>
+                <span class="bpsim-mit-js" data-bpsim-status="OK">Mit diesen Angaben anmelden</span>
+                <span class="bpsim-mit-js" data-bpsim-status="CANCEL" hidden>„Abgebrochen“ an den Dienst senden</span>
+                <span class="bpsim-mit-js" data-bpsim-status="ERROR" hidden>„Fehler“ an den Dienst senden</span>
+            </button>
         </div>
-        <!-- neue Zeile -->
-        <div class="bpsim-aktionen my-4">
-            <div class="d-grid gap-2 d-md-flex">
-                <button type="submit" id="applyPerson" class="btn btn-primary bpsim-knopf">Person übernehmen</button>
-                <button type="cancel" th:formaction="@{__${basepath}__/edit/cancel}" class="btn btn-secondary bpsim-knopf">Abbrechen</button>
-            </div>
+        <div class="d-flex justify-content-between gap-2 mt-2 d-md-none">
+            <button type="submit" class="btn btn-outline-secondary"
+                    data-th-formaction="@{__${basepath}__/edit/zurueck}">Zurück zur Auswahl</button>
+            <button type="submit" class="btn btn-link bpsim-link"
+                    data-th-formaction="@{__${basepath}__/edit/cancel}">Anmeldung abbrechen</button>
         </div>
 
         <input type="hidden" data-th-field="*{samlRequest}" name="request"/>
+        <input type="hidden" data-th-field="*{user.id}"/>
+        <input type="hidden" data-th-field="*{domainContext}"/>
     </form>
-</div>
+</main>
 <footer data-th-replace="~{fragments/snippets :: footer}"></footer>
 </body>
 </html>

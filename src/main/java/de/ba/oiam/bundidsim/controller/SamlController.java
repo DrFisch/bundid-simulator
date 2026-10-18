@@ -138,8 +138,14 @@ public class SamlController {
                         .build();
         // Fork: mit bestehender Sitzung (neue Anmeldung verlangt oder Step-up) Person und Kontext vorbelegen
         sso.ifPresent(s -> {
-            formData.setUserId(s.userId());
-            formData.setDomainContext(s.domainContext());
+            if (s.userId() != null) {
+                formData.setUserId(s.userId());
+            }
+            // Sitzung ohne Kontext (z. B. nach „Angaben ändern“): Vorbelegung je Gerät behalten, sonst wäre das
+            // Pflichtfeld wieder leer
+            if (StringUtils.hasText(s.domainContext())) {
+                formData.setDomainContext(s.domainContext());
+            }
             if (Arrays.stream(identWithList).anyMatch(item -> item[0].equals(s.identification()))) {
                 formData.setIdentifikationWith(s.identification());
             }

@@ -359,3 +359,31 @@ body > .container {
         padding: 1.25rem 1.25rem 0;
     }
 }
+
+/* "Angaben aendern": Bloecke Person, Anschrift, Kennungen, Identifizierung */
+.bpsim-block {
+    padding: 1rem .85rem;
+    border: 1px solid var(--bpsim-rand);
+    border-radius: var(--bpsim-radius);
+    background-color: #fff;
+}
+
+.bpsim-aktionen-seite {
+    background-color: var(--bpsim-flaeche);
+}
+
+/* Umriss-Knopf dunkler als Bootstrap-Grau: Kontrast >= 4.5:1 auch auf der grauen Flaeche */
+.btn-outline-secondary {
+    --bs-btn-color: #495057;
+    --bs-btn-border-color: #868e96;
+    --bs-btn-hover-bg: #495057;
+    --bs-btn-hover-border-color: #495057;
+    --bs-btn-active-bg: #495057;
+    --bs-btn-active-border-color: #495057;
+}
+
+@media (min-width: 768px) {
+    .bpsim-block {
+        padding: 1.25rem;
+    }
+}
