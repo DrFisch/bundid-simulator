@@ -121,6 +121,8 @@ public class SamlController {
                     user.getEidCitizenQaaLevel());
         }
 
+        // Fork: Personen, Mittel mit Niveau, Schnellanmeldung und die Anfrage des Dienstes (AuswahlSeite)
+        AuswahlSeite.auswahl(model, userService, samlRequestModel);
         List<BundIdUser> userList = userService.getUserList();
         String[][] identWithList = AuthLevelTools.createIdentificationWithList(samlRequestModel.getReqAuthnLevel());
         SelectFormData formData =
@@ -145,10 +147,6 @@ public class SamlController {
         });
 
         model.addAttribute("formdata", formData);
-        model.addAttribute("userlist", userList);
-        model.addAttribute("identWithList", identWithList);
-        // Fork: Karte „Schnelle Anmeldung“ (John Doe)
-        SelectViewController.addQuickLogin(model, userService, samlRequestModel.getReqAuthnLevel());
         log.debug("Model: [{}]", formData.toString());
 
         return "select_view";

@@ -8,7 +8,6 @@ import de.ba.oiam.bundidsim.model.view.SelectFormDataValidator;
 import de.ba.oiam.bundidsim.services.AuthResponseService;
 import de.ba.oiam.bundidsim.services.SsoSessionService;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
-import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
 import de.ba.oiam.bundidsim.utils.PersonTools;
 import de.ba.oiam.bundidsim.utils.SchnellAnmeldungTools;
@@ -89,11 +88,8 @@ public class SelectViewController {
         // Validierungsfehler behandeln
         if (bindingResult != null && bindingResult.hasErrors()) {
             log.debug("validationErrors found...");
-            model.addAttribute("userlist", userService.getUserList());
-            model.addAttribute(
-                    "identWithList",
-                    AuthLevelTools.createIdentificationWithList(requestParams.getReqAuthnLevel()));
-            addQuickLogin(model, userService, requestParams.getReqAuthnLevel());
+            // Fork: dieselben Daten wie beim ersten Aufruf (AuswahlSeite)
+            AuswahlSeite.auswahl(model, userService, requestParams);
             return "select_view";
         }
 
@@ -143,13 +139,7 @@ public class SelectViewController {
                 user.getEidCitizenQaaLevel());
     }
 
-    /** Fork: Daten für die Karte „Schnelle Anmeldung“ auf der Auswahlseite (auch von SamlController genutzt). */
-    static void addQuickLogin(Model model, UserDefinitionService users, String reqAuthnLevel) {
-        String[] identification = SchnellAnmeldungTools.identifikation(reqAuthnLevel);
-        model.addAttribute("schnellPerson", users.getUserById(SchnellAnmeldungTools.USER_ID));
-        model.addAttribute("schnellIdent", identification[1]);
-        model.addAttribute("schnellNiveau", SchnellAnmeldungTools.niveauName(identification[0]));
-    }
+    // Fork: Daten für die Karte „Schnelle Anmeldung“ seit 2026-10-18 in AuswahlSeite.schnellanmeldung().
 
     // Fork: Vervollständigen der Person (vorher addDataToUser/changeMailAddress hier) in PersonTools – die
     // Anmeldung am Postfach des Simulators nutzt dieselbe Logik.
