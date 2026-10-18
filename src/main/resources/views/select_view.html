@@ -3,9 +3,7 @@
      (Raster je Bildschirmbreite, ganze Karte antippbar, Felder untereinander, Knöpfe unten fest), Schnellanmeldung
      mit John Doe (Karte oben, Bestätigung im Dialog, POST /select/schnell). -->
 <html lang="de">
-<head data-th-insert="~{fragments/snippets :: head}">
-    <title>Eid-BundID-IdpMock</title>
-</head>
+<head data-th-replace="~{fragments/snippets :: head('Anmelden')}"></head>
 <body>
     <nav data-th-replace="~{fragments/snippets :: navbar}"></nav>
     <div class="container">
