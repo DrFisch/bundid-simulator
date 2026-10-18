@@ -5,7 +5,10 @@ package de.ba.oiam.bundidsim.utils;
 
 import de.ba.oiam.bundidsim.model.BundIdUser;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -34,6 +37,30 @@ class SchnellAnmeldungToolsTest {
         assertThat(SchnellAnmeldungTools.kennung("<script>", () -> "neu00000")).isEqualTo("neu00000");
         assertThat(SchnellAnmeldungTools.neueKennung()).matches("[a-z0-9]{8}");
         assertThat(SchnellAnmeldungTools.neueKennung()).isNotEqualTo(SchnellAnmeldungTools.neueKennung());
+    }
+
+    @Test
+    void deviceIdComesFromTheCookieOrIsIssuedAndPrefillsTheSelection() {
+        // vorhandenes, gültiges Cookie: Kennung bleibt, Cookie wird erneuert
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new Cookie(SchnellAnmeldungTools.COOKIE, "abc123xy"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        assertThat(SchnellAnmeldungTools.geraeteKennung(request, response)).isEqualTo("abc123xy");
+        Cookie renewed = response.getCookie(SchnellAnmeldungTools.COOKIE);
+        assertThat(renewed).isNotNull();
+        assertThat(renewed.getValue()).isEqualTo("abc123xy");
+        assertThat(renewed.isHttpOnly()).isTrue();
+        assertThat(renewed.getMaxAge()).isEqualTo(365 * 24 * 60 * 60);
+
+        // ohne Cookie: neue Kennung
+        MockHttpServletResponse fresh = new MockHttpServletResponse();
+        String id = SchnellAnmeldungTools.geraeteKennung(new MockHttpServletRequest(), fresh);
+        assertThat(id).matches("[a-z0-9]{8}");
+        assertThat(fresh.getCookie(SchnellAnmeldungTools.COOKIE).getValue()).isEqualTo(id);
+
+        // Vorbelegung der normalen Auswahl: nie leer, ohne das "jd" der Schnellanmeldung
+        assertThat(SchnellAnmeldungTools.auswahlKontext("abc123xy")).isEqualTo("-abc123xy");
+        assertThat(SchnellAnmeldungTools.kontext("abc123xy")).isEqualTo("-jdabc123xy");
     }
 
     @Test

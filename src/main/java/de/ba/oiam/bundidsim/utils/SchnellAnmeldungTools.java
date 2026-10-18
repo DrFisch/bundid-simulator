@@ -3,7 +3,12 @@
  */
 package de.ba.oiam.bundidsim.utils;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -16,6 +21,8 @@ import java.util.regex.Pattern;
  *       substanziell: Elster, hoch: Online-Ausweis) – so bleibt ein Step-up des Dienstes vorführbar.</li>
  *   <li>Fachlicher Kontext je Gerät: {@code -jd} plus eine zufällige Kennung aus dem Cookie {@value #COOKIE}. Auf
  *       einem Gerät bleibt es dasselbe Demo-Konto (gleiche bPK2), verschiedene Geräte teilen sich keins.</li>
+ *   <li>Seit 2026-10-18 belegt dieselbe Kennung auch den fachlichen Kontext der normalen Personenauswahl vor
+ *       ({@code -} plus Kennung): Das Pflichtfeld ist nie leer, und jedes Gerät bekommt eigene Konten.</li>
  * </ul>
  */
 public final class SchnellAnmeldungTools {
@@ -52,9 +59,36 @@ public final class SchnellAnmeldungTools {
         return sb.toString();
     }
 
+    /**
+     * Kennung dieses Geräts aus dem Cookie {@value #COOKIE} lesen oder neu vergeben. Das Cookie wird jedes Mal für ein
+     * Jahr erneuert (nur für den Simulator, HttpOnly, SameSite=Lax).
+     */
+    public static String geraeteKennung(HttpServletRequest request, HttpServletResponse response) {
+        String saved = request.getCookies() == null ? null : Arrays.stream(request.getCookies())
+                .filter(c -> COOKIE.equals(c.getName())).map(Cookie::getValue).findFirst().orElse(null);
+        String deviceId = kennung(saved, SchnellAnmeldungTools::neueKennung);
+        Cookie cookie = new Cookie(COOKIE, deviceId);
+        cookie.setMaxAge(365 * 24 * 60 * 60);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+        return deviceId;
+    }
+
     /** Fachlicher Kontext für bPK2 und E-Mail-Adresse, z. B. {@code -jd4k2m9x7q}. */
     public static String kontext(String kennung) {
         return "-jd" + kennung;
+    }
+
+    /**
+     * Vorbelegter fachlicher Kontext der normalen Personenauswahl, z. B. {@code -4k2m9x7q} (ohne das „jd“ der
+     * Schnellanmeldung). Auf einem Gerät ist jede Testperson damit immer dasselbe Konto. Änderbar; leer lehnt der
+     * Server weiter ab.
+     */
+    public static String auswahlKontext(String kennung) {
+        return "-" + kennung;
     }
 
     /** Vertrauensniveau zum Identifizierungsmittel, wie es die BundID nennt. */

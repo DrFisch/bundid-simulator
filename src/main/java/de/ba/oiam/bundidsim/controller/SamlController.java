@@ -24,8 +24,10 @@ import de.ba.oiam.bundidsim.services.SsoSessionService;
 import de.ba.oiam.bundidsim.services.UserDefinitionService;
 import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
+import de.ba.oiam.bundidsim.utils.SchnellAnmeldungTools;
 import de.ba.oiam.bundidsim.utils.XmlParserTools;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -47,7 +49,8 @@ import java.util.Optional;
  * Webcontroller für den Einstiegspunkt "/saml" via POST und GET (nur Test)
  *
  * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Request-Analyse namespace-bewusst; Anmeldesitzung
- * (SSO): Mit bestehender Sitzung und ausreichendem Niveau antwortet der Simulator ohne Personenauswahl.
+ * (SSO): Mit bestehender Sitzung und ausreichendem Niveau antwortet der Simulator ohne Personenauswahl; fachlicher
+ * Kontext der Auswahl je Gerät vorbelegt (2026-10-18).
  */
 @Controller
 @Slf4j
@@ -73,12 +76,13 @@ public class SamlController {
      * @throws Exception
      */
     @GetMapping(path = "/saml")
-    public String samlRequestReceiverGet(Model model, HttpServletRequest request) throws Exception {
+    public String samlRequestReceiverGet(Model model, HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
 
         String paramSamlRequest = createSkeletonSamlRequestBase64Encoded();
         String paramRelayState =
                 "lwN0_rRBl5jHaEJt4a0V6IRFOkaR3Krw4K9HQ-73NSM.1gou_vqz1yw.api-client-public";
-        return samlRequestReceiver(model, request, paramSamlRequest, paramRelayState);
+        return samlRequestReceiver(model, request, response, paramSamlRequest, paramRelayState);
     }
 
     /**
@@ -89,7 +93,7 @@ public class SamlController {
      * @param state       Relaystate
      */
     @PostMapping(path = "/saml")
-    public String samlRequestReceiver(Model model, HttpServletRequest request,
+    public String samlRequestReceiver(Model model, HttpServletRequest request, HttpServletResponse response,
                                       @RequestParam(value = "SAMLRequest", required = false) String samlRequest,
                                       @RequestParam(value = "RelayState", required = false) String state)
             throws Exception {
@@ -124,6 +128,10 @@ public class SamlController {
                         .status(SelectFormData.STATUS_OK)
                         .userId(userList.getFirst().getId()) // Erster User-Eintrag aktiv
                         .identifikationWith(AuthLevelTools.IDENTIFICATION_EID)
+                        // Fork (2026-10-18): Pflichtfeld „fachlicher Kontext“ je Gerät vorbelegen, sichtbar und
+                        // änderbar – vorher scheiterte „Person übernehmen“ am leeren Feld (Befund B15)
+                        .domainContext(SchnellAnmeldungTools.auswahlKontext(
+                                SchnellAnmeldungTools.geraeteKennung(request, response)))
                         .samlRequest(encodedRequest)
                         .build();
         // Fork: mit bestehender Sitzung (neue Anmeldung verlangt oder Step-up) Person und Kontext vorbelegen

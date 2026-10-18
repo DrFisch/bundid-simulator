@@ -12,7 +12,6 @@ import de.ba.oiam.bundidsim.utils.AuthLevelTools;
 import de.ba.oiam.bundidsim.utils.ObjectStringConverter;
 import de.ba.oiam.bundidsim.utils.PersonTools;
 import de.ba.oiam.bundidsim.utils.SchnellAnmeldungTools;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -27,14 +26,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Arrays;
-
 
 /**
  * Schnellauswahl einer Person und Identifizierungsdaten.
  *
  * Geändert 2026 (Fork bpsim/standardkonform, siehe FORK.md): Response über AuthResponseService, erfolgreiche
- * Anmeldung als Anmeldesitzung (SSO), Vervollständigen der Person in PersonTools, Schnellanmeldung mit John Doe.
+ * Anmeldung als Anmeldesitzung (SSO), Vervollständigen der Person in PersonTools, Schnellanmeldung mit John Doe
+ * (Gerätekennung seit 2026-10-18 in SchnellAnmeldungTools, auch für die Vorbelegung der Auswahl).
  */
 @Controller
 @Slf4j
@@ -136,19 +134,7 @@ public class SelectViewController {
                              @RequestParam("samlRequest") String samlRequest) {
         SamlRequestValues requestParams = ObjectStringConverter.decodeAndDeserialize(samlRequest, SamlRequestValues.class);
         String identification = SchnellAnmeldungTools.identifikation(requestParams.getReqAuthnLevel())[0];
-
-        String saved = request.getCookies() == null ? null : Arrays.stream(request.getCookies())
-                .filter(c -> SchnellAnmeldungTools.COOKIE.equals(c.getName())).map(Cookie::getValue).findFirst().orElse(null);
-        String deviceId = SchnellAnmeldungTools.kennung(saved, SchnellAnmeldungTools::neueKennung);
-        Cookie cookie = new Cookie(SchnellAnmeldungTools.COOKIE, deviceId);
-        cookie.setMaxAge(365 * 24 * 60 * 60);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(request.isSecure());
-        cookie.setAttribute("SameSite", "Lax");
-        response.addCookie(cookie);
-
-        String domainContext = SchnellAnmeldungTools.kontext(deviceId);
+        String domainContext = SchnellAnmeldungTools.kontext(SchnellAnmeldungTools.geraeteKennung(request, response));
         BundIdUser user = PersonTools.applySelection(userService.getUserById(SchnellAnmeldungTools.USER_ID),
                 identification, null, null, domainContext);
         log.debug("Schnellanmeldung: [{}] mit [{}]", user.getBpk2(), identification);
