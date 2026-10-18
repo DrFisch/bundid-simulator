@@ -1,20 +1,27 @@
 <!DOCTYPE html>
 <!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Nachrichtenliste des Postfachs (Karten, Punkt für
-     ungelesen; „Zurück zum Dienst“ nur in der Kopfzeile). -->
+     ungelesen; „Zurück zum Dienst“ nur in der Kopfzeile). Seit 2026-10-18 im gemeinsamen Stil (leeres Postfach als
+     Kasten mit Erklärung). -->
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head data-th-replace="~{postfach/rahmen :: head('Postfach')}"></head>
 <body>
 <nav data-th-replace="~{postfach/rahmen :: nav}"></nav>
-<main class="container pb-4" style="max-width: 900px;">
+<main class="container bpsim-seite" style="max-width: 900px;">
     <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
-        <h1 class="h4 mb-0">Nachrichten</h1>
+        <h1 class="h3 mb-0">Nachrichten</h1>
         <span class="text-muted small" data-th-if="${!#lists.isEmpty(eintraege)}"
               data-th-text="${#lists.size(eintraege)} + ' Nachricht(en), davon ' + ${ungelesen} + ' ungelesen'">0</span>
     </div>
 
-    <div class="alert alert-secondary" data-th-if="${#lists.isEmpty(eintraege)}">
-        Ihr Postfach ist leer. Bestätigungen zu Terminen und Anträgen erscheinen hier, sobald ein Dienst sie an Ihr
-        Postkorb-Handle schickt.
+    <div class="bpsim-block text-center py-4" data-th-if="${#lists.isEmpty(eintraege)}">
+        <svg class="mb-2" width="40" height="40" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11Z"
+                  fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <path d="m3.5 6.5 8.5 6 8.5-6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+        <p class="fw-semibold mb-1">Ihr Postfach ist leer.</p>
+        <p class="text-muted small mb-0">Bestätigungen zu Terminen und Anträgen erscheinen hier, sobald ein Dienst sie an
+            Ihr Postkorb-Handle schickt.</p>
     </div>
 
     <div class="list-group bpsim-karten" data-th-unless="${#lists.isEmpty(eintraege)}">

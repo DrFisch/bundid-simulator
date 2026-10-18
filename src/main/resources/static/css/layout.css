@@ -71,12 +71,7 @@ body > .container {
 }
 
 @media (max-width: 575.98px) {
-    /* Handy: Umgebung als zweite, ruhige Zeile unter dem Titel statt abgeschnitten daneben */
-    .bpsim-kopf > .container {
-        flex-wrap: wrap !important;
-        row-gap: .15rem !important;
-    }
-
+    /* Handy: Umgebung als zweite, ruhige Zeile unter dem Titel statt abgeschnitten daneben (die Navbar bricht um) */
     .bpsim-umgebung {
         flex-basis: 100%;
         max-width: none;

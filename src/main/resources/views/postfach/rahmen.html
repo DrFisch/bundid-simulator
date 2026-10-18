@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Neu 2026 im Fork bpsim/standardkonform (siehe FORK.md): Rahmen der Postfach-Seiten. Kopfzeile einzeilig:
-     Zurück zum Dienst, Titel, Konto-Menü (details/summary – ohne Skript, CSP script-src 'self'). -->
+     Zurück zum Dienst, Titel, Konto-Menü (details/summary – ohne Skript, CSP script-src 'self'). Seit 2026-10-18 mit
+     dem gemeinsamen Erscheinungsbild der Simulator-Seiten (layout.css, Zeichen, Fußzeile). -->
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head data-th-fragment="head(titel)">
     <meta charset="utf-8">
@@ -8,10 +9,10 @@
     <meta name="robots" content="noindex, nofollow">
     <title data-th-text="${titel} + ' – Mein BundID-Postfach (Simulation)'">Postfach</title>
     <link rel="stylesheet" data-th-href="@{__${basepath}__/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" data-th-href="@{__${basepath}__/css/layout.css}">
+    <script src="" data-th-src="@{__${basepath}__/js/auswahl.js}"></script>
     <style>
-        body { background: #f4f6f9; }
-        .postfach-nav { background: #1d3557; }
-        .eintrag-neu { border-left: 4px solid #0d6efd; }
+        .eintrag-neu { border-left: 4px solid var(--bpsim-akzent) !important; }
         /* Nachrichten als Karten mit Abstand, ungelesene mit Punkt */
         .bpsim-karten { gap: .5rem; }
         .bpsim-karten > .list-group-item { border-width: 1px !important; border-radius: .75rem !important; }
@@ -21,18 +22,22 @@
         .bpsim-konto > summary { list-style: none; }
         .bpsim-konto > summary::-webkit-details-marker { display: none; }
         .bpsim-konto-menue { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 15rem; z-index: 1000; }
-        @media (max-width: 575.98px) { .postfach-nav .navbar-brand { font-size: 1.05rem; } }
         .inhalt { white-space: pre-wrap; }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-dark postfach-nav mb-4" data-th-fragment="nav">
+<nav class="navbar navbar-dark bpsim-kopf mb-3 mb-md-4" data-th-fragment="nav">
     <div class="container flex-nowrap gap-2">
         <a class="btn btn-sm btn-light flex-shrink-0" data-th-if="${portalUrl}" data-th-href="${portalUrl}"
            data-th-attr="aria-label='Zurück zum ' + ${portalName}"><span aria-hidden="true">←</span><span
                 class="d-none d-md-inline" data-th-text="' Zurück zum ' + ${portalName}"> Zurück zum Dienst</span></a>
-        <a class="navbar-brand d-flex align-items-center gap-2 me-auto text-truncate" data-th-href="@{__${basepath}__/postfach}">
-            <span class="fw-semibold text-truncate"><span class="d-none d-sm-inline">Mein </span>BundID-Postfach</span>
+        <a class="navbar-brand bpsim-marke me-auto py-0" data-th-href="@{__${basepath}__/postfach}">
+            <svg class="bpsim-logo d-none d-sm-inline" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 2 4 5v6c0 5.2 3.4 9.5 8 11 4.6-1.5 8-5.8 8-11V5l-8-3Z" fill="currentColor" opacity=".3"/>
+                <path d="m8.3 12.1 2.5 2.5 4.9-5" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="text-truncate"><span class="d-none d-sm-inline">Mein </span>BundID-Postfach</span>
             <span class="badge bg-warning text-dark">Simulation</span>
         </a>
         <details class="bpsim-konto flex-shrink-0" data-th-if="${sessionName}">
@@ -49,10 +54,12 @@
         </details>
     </div>
 </nav>
-<footer class="container border-top py-3 small text-muted" data-th-fragment="footer">
-    Simulation für ein Studienprojekt: Postfach des BundID-Simulators (Fork), kein echtes BundID-Postfach. Alle Personen
-    sind fiktive Testpersonen – bitte keine echten Daten verwenden. Bei der echten BundID ist das Postfach Teil des
-    Kontos auf id.bund.de; Behörden stellen Nachrichten über das Zentrale Bürgerpostfach (ZBP) zu.
+<footer class="bpsim-fuss mt-4 py-3" data-th-fragment="footer">
+    <div class="container small">
+        Simulation für ein Studienprojekt: Postfach des BundID-Simulators (Fork), kein echtes BundID-Postfach. Alle
+        Personen sind fiktive Testpersonen – bitte keine echten Daten verwenden. Bei der echten BundID ist das Postfach
+        Teil des Kontos auf id.bund.de; Behörden stellen Nachrichten über das Zentrale Bürgerpostfach (ZBP) zu.
+    </div>
 </footer>
 </body>
 </html>
