@@ -103,6 +103,22 @@ body > .container {
     text-underline-offset: .2em;
 }
 
+/* Fehlerzusammenfassung oben (Ziel des Ankers #fehler) */
+.bpsim-fehler {
+    scroll-margin-top: 1rem;
+    border-left: 4px solid #b02a37;
+}
+
+.bpsim-fehler:focus {
+    outline: 3px solid rgba(176, 42, 55, .45);
+    outline-offset: 2px;
+}
+
+.bpsim-fehler a {
+    color: #842029;
+    font-weight: 600;
+}
+
 /* Anfrage des Dienstes als Chips */
 .bpsim-anfrage {
     display: flex;

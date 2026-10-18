@@ -3,14 +3,29 @@
      mobil zuerst (2026-10-18): oben die Anfrage des Dienstes, dann zwei klar getrennte Wege – Schnellanmeldung mit
      John Doe (Dialog, POST /select/schnell) oder Testperson wählen (1 Person → 2 Identifizierungsmittel →
      3 Erweitert: Status und fachlicher Kontext, je Gerät vorbelegt). Der Knopf nennt die gewählte Person und klebt nur
-     innerhalb dieses Weges am unteren Rand. Feldnamen, Endpunkte und IDs wie bisher (Tests, Skripte). -->
+     innerhalb dieses Weges am unteren Rand. Fehler oben als Zusammenfassung mit Sprung dorthin. Feldnamen, Endpunkte
+     und IDs wie bisher (Tests, Skripte). -->
 <html lang="de">
 <head data-th-replace="~{fragments/snippets :: head('Anmelden')}"></head>
 <body>
 <nav data-th-replace="~{fragments/snippets :: navbar}"></nav>
 <main class="container bpsim-seite">
+    <!-- Aktion mit Anker #fehler: Lehnt der Server ab, springt der Browser zur Fehlerzusammenfassung (ohne Skript) -->
     <form id="auswahl" class="bpsim-auswahl" method="post" action="#" data-bpsim-auswahl
-          data-th-action="@{__${basepath}__/select/submit}" data-th-object="${formdata}">
+          data-th-action="@{__${basepath}__/select/submit#fehler}" data-th-object="${formdata}">
+
+        <div id="fehler" class="alert alert-danger bpsim-fehler" role="alert" tabindex="-1" autofocus
+             data-th-if="${#fields.hasAnyErrors()}">
+            <h2 class="h6 mb-1">Bitte noch ergänzen – die Anmeldung wurde nicht abgeschickt</h2>
+            <ul class="mb-0 ps-3">
+                <li data-th-if="${#fields.hasErrors('domainContext')}"><a href="#domaincontext">Fachlicher Kontext fehlt</a>
+                    (unter „Erweitert“) – er wird an bPK2 und E-Mail angehängt, z. B. <code>-team1</code>.</li>
+                <li data-th-if="${#fields.hasErrors('eidasCountry')}"><a href="#eidasCountry">eIDAS-Land fehlt</a> – nötig
+                    bei Identifizierung mit eIDAS.</li>
+                <li data-th-if="${#fields.hasErrors('eidasLoa')}"><a href="#eidasLoa">eIDAS-Niveau fehlt</a> – nötig bei
+                    Identifizierung mit eIDAS.</li>
+            </ul>
+        </div>
 
         <header class="mb-3">
             <h1 class="h3 mb-1">Anmelden mit der BundID</h1>
